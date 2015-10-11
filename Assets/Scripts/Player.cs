@@ -3,19 +3,11 @@ using System.Collections;
 
 public class Player : MonoBehaviour
 {
-    public delegate void StartHandler(Player player);
+    public delegate void StartHandler(GameObject player);
     static public event StartHandler OnStart = delegate { };
-
-    public Cell cell;
 
     void Start()
     {
-        OnStart(this);
-    }
-
-    public void SetCell(Cell cell)
-    {
-        this.cell = cell;
-        transform.position = new Vector3(cell.positionX, 0, cell.positionY);
+        OnStart(gameObject);
     }
 }

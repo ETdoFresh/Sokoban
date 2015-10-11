@@ -5,7 +5,7 @@ using System;
 public class LevelController : MonoBehaviour
 {
     public MainGrid grid;
-    public Player player;
+    public GameObject player;
 
     enum Direction { UP, DOWN, LEFT, RIGHT }
 
@@ -26,7 +26,7 @@ public class LevelController : MonoBehaviour
         StartLevel();
     }
 
-    void onPlayerStart(Player player)
+    void onPlayerStart(GameObject player)
     {
         this.player = player;
         StartLevel();
@@ -37,8 +37,12 @@ public class LevelController : MonoBehaviour
         if (player == null) return;
         if (grid == null) return;
 
-        var startingCell = grid.grid[0, 0];
-        player.SetCell(startingCell);
+        GameObject startingCell = grid.grid[0, 0];
+        player.GetComponent<Cell>().SetCell(startingCell);
+
+        GameObject[] mapObjects = GameObject.FindGameObjectsWithTag("Map Object");
+        foreach (GameObject mapObject in mapObjects)
+            grid.AssignClosestCell(mapObject);
     }
 
     void MoveUp() { Move(Direction.UP); }
@@ -48,28 +52,48 @@ public class LevelController : MonoBehaviour
 
     void Move(Direction direction)
     {
-        switch(direction)
+        GameObject destinationCell = null;
+        int x = player.GetComponent<Cell>().x;
+        int y = player.GetComponent<Cell>().y;
+        switch (direction)
         {
             case Direction.UP:
-                Debug.Log("Up");
-                if (player.cell.y + 1 < grid.gridHeight)
-                    player.SetCell(grid.grid[player.cell.x, player.cell.y + 1]);
+                destinationCell = grid.GetCell(x, y + 1);
                 break;
             case Direction.DOWN:
-                Debug.Log("Down");
-                if (player.cell.y - 1 >= 0)
-                    player.SetCell(grid.grid[player.cell.x, player.cell.y - 1]);
+                destinationCell = grid.GetCell(x, y - 1);
                 break;
             case Direction.LEFT:
-                Debug.Log("Left");
-                if (player.cell.x - 1 >= 0)
-                    player.SetCell(grid.grid[player.cell.x - 1, player.cell.y]);
+                destinationCell = grid.GetCell(x - 1, y);
                 break;
             case Direction.RIGHT:
-                Debug.Log("Right");
-                if (player.cell.x + 1 < grid.gridWidth)
-                    player.SetCell(grid.grid[player.cell.x + 1, player.cell.y]);
+                destinationCell = grid.GetCell(x + 1, y);
                 break;
         }
+        if (isValidMove(destinationCell))
+            player.GetComponent<Cell>().SetCell(destinationCell);
+    }
+
+    bool isValidMove(GameObject cell)
+    {
+        if (cell == null)
+            return false;
+
+        if (!isEmpty(cell))
+            return false;
+
+        return true;
+    }
+
+    private bool isEmpty(GameObject cell)
+    {
+        CellManager cellManager = cell.GetComponent<CellManager>();
+        if (cellManager.gameObjectOnMe != null)
+        {
+            Cell cellsGameObjectCell = cellManager.gameObjectOnMe.GetComponent<Cell>();
+            if (cellsGameObjectCell != null)
+                return !cellsGameObjectCell.isSolid;
+        }
+        return true;
     }
 }

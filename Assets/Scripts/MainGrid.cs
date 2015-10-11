@@ -9,7 +9,7 @@ public class MainGrid : MonoBehaviour
 
     public int width = 10;
     public int height = 10;
-    public Cell[,] grid;
+    public GameObject[,] grid;
     public float gridWidth;
     public float gridHeight;
     public float cellWidth;
@@ -20,7 +20,7 @@ public class MainGrid : MonoBehaviour
         if (width <= 0) width = 10;
         if (height <= 0) height = 10;
 
-        grid = new Cell[width, height];
+        grid = new GameObject[width, height];
         gridWidth = transform.localScale.x;
         gridHeight = transform.localScale.y;
         cellWidth = gridWidth / width;
@@ -30,17 +30,54 @@ public class MainGrid : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                grid[x, y] = new Cell();
-                grid[x, y].positionX = (-gridWidth / 2) + (x * cellWidth) + (cellWidth / 2);
-                grid[x, y].positionY = (-gridHeight/ 2) + (y * cellHeight) + (cellHeight/ 2);
-                grid[x, y].x = x;
-                grid[x, y].y = y;
+                GameObject cell = new GameObject();
+                cell.transform.parent = transform;
+                cell.name = "Cell[" + x + "," + y + "]";
+                float posX = (-gridWidth / 2) + (x * cellWidth) + (cellWidth / 2);
+                float posY = (-gridHeight/ 2) + (y * cellHeight) + (cellHeight/ 2);
+                cell.transform.position = new Vector3(posX, 0, posY);
+                cell.transform.rotation = Quaternion.identity;
+                CellManager cellManager = cell.AddComponent<CellManager>();
+                cellManager.SetCell(x, y);
+                grid[x, y] = cell;
             }
         }
     }
-
     void Start()
     {
         OnStart(this);
+    }
+
+    public GameObject GetCell(int x, int y)
+    {
+        if (0 > x || x > gridWidth)
+            return null;
+
+        if (0 > y || y > gridHeight)
+            return null;
+
+        return grid[x, y];
+    }
+
+    public void AssignClosestCell(GameObject gameObject)
+    {
+        // EJlol3: Suggestion - Calculate cell instead of finding closest cell
+        Vector3 position = gameObject.transform.position;
+        Cell gObjCell = gameObject.GetComponent<Cell>();
+        GameObject closestCell = grid[gObjCell.x, gObjCell.y];
+        Vector3 cellPosition = closestCell.transform.position;
+        float minDistance = Vector3.Distance(position, cellPosition);
+        for (int x = 0; x < gridWidth; x++)
+            for (int y = 0; y < gridHeight; y++)
+            {
+                Vector3 testPosition = grid[x, y].transform.position;
+                float distance = Vector3.Distance(position, testPosition);
+                if (distance < minDistance)
+                {
+                    closestCell = grid[x, y];
+                    minDistance = distance;
+                }
+            }
+        gObjCell.SetCell(closestCell);
     }
 }
