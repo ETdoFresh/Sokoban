@@ -50,10 +50,10 @@ public class MainGrid : MonoBehaviour
 
     public GameObject GetCell(int x, int y)
     {
-        if (0 > x || x > gridWidth)
+        if (0 > x || x >= gridWidth)
             return null;
 
-        if (0 > y || y > gridHeight)
+        if (0 > y || y >= gridHeight)
             return null;
 
         return grid[x, y];

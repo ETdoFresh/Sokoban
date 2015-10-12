@@ -14,9 +14,23 @@ S02E02 - Sokoban - The Incredible Moving Box
 
 - Create Moving boxes
 - Create Targets
+- Create Simple Win Condition
 - Refine Grid System
+
+S02E03 - Sokoban - Read Level 1 from File
+
+- Come up with format for level
+	- I'm thinking:
+		00111110
+		11100010
+		1TSB0010
+		1110BT10
+		1T11B010
+		1010T011
+		1B0XBBT1
+		1000T001
+		11111111
+- Read Level on Start or when R is pressed.
 
 -----------------------------------------------------------------------------------------
 Bugs
-
-- Array index out of range when trying to move off-grid
