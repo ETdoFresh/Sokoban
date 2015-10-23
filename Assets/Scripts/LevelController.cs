@@ -10,14 +10,20 @@ public class LevelController : MonoBehaviour
     public GameObject player;
     public Cell playerCell;
     public int boxStrength = 1;
+    public GameObject SolidPrefab;
+    public GameObject MoveablePrefab;
+    public GameObject TargetPrefab;
+    public GameObject PlayerPrefab;
+    public Level level;
     private int _boxesPushed = 0;
 
     enum Direction { UP, DOWN, LEFT, RIGHT }
 
     void OnEnable()
     {
-        MainGrid.OnStart += OnGridStart;
-        Player.OnStart += onPlayerStart;
+        level = Level.Create(LevelReader.ReadLevel("Assets/Level/level1.txt"));
+        grid = GameObject.Find("Ground").GetComponent<MainGrid>();
+        grid.SetGrid(level.width, level.height);
 
         InputController.OnUp += MoveUp;
         InputController.OnDown += MoveDown;
@@ -29,9 +35,6 @@ public class LevelController : MonoBehaviour
 
     void OnDisable()
     {
-        MainGrid.OnStart -= OnGridStart;
-        Player.OnStart -= onPlayerStart;
-
         InputController.OnUp -= MoveUp;
         InputController.OnDown -= MoveDown;
         InputController.OnLeft -= MoveLeft;
@@ -40,35 +43,36 @@ public class LevelController : MonoBehaviour
         OnMove -= CheckTargets;
     }
 
-    void OnGridStart(MainGrid grid)
+    void Start()
     {
-        this.grid = grid;
-        StartLevel();
-    }
-
-    void onPlayerStart(GameObject player)
-    {
-        this.player = player;
-        playerCell = player.GetComponent<Cell>();
-        StartLevel();
-    }
-
-    void StartLevel()
-    {
-        if (player == null) return;
-        if (grid == null) return;
-
-        GameObject[] mapObjects;
-        mapObjects = GameObject.FindGameObjectsWithTag("Target");
-        foreach (GameObject mapObject in mapObjects)
-        {
-            grid.AssignClosestCell(mapObject);
-            mapObject.GetComponent<Cell>().cell.GetComponent<CellManager>().gameObjectOnMe = null;
-        }
-
-        mapObjects = GameObject.FindGameObjectsWithTag("Map Object");
-        foreach (GameObject mapObject in mapObjects)
-            grid.AssignClosestCell(mapObject);
+        GameObject solids = new GameObject() { name = "Solids" };
+        GameObject moveables = new GameObject() { name = "Moveable Boxes" };
+        GameObject targets = new GameObject() { name = "Targets" };
+        for (int x = 0; x < level.width; x++)
+            for (int y = 0; y < level.height; y++)
+                switch (level.data[x, y])
+                {
+                    case '1':
+                        GameObject solid = Spawn(SolidPrefab, grid.GetCell(x, y));
+                        solid.name += " " + solids.transform.childCount;
+                        solid.transform.parent = solids.transform;
+                        break;
+                    case 'S':
+                        player = Spawn(PlayerPrefab, grid.GetCell(x, y));
+                        playerCell = player.GetComponent<Cell>();
+                        break;
+                    case 'B':
+                        GameObject box = Spawn(MoveablePrefab, grid.GetCell(x, y));
+                        box.name += " " + moveables.transform.childCount;
+                        box.transform.parent = moveables.transform;
+                        break;
+                    case 'T':
+                        GameObject target = Spawn(TargetPrefab, grid.GetCell(x, y));
+                        target.name += " " + targets.transform.childCount;
+                        target.transform.parent = targets.transform;
+                        grid.GetCell(x, y).GetComponent<CellManager>().gameObjectOnMe = null;
+                        break;
+                }
     }
 
     void MoveUp() { Move(playerCell, Direction.UP); }
@@ -155,7 +159,9 @@ public class LevelController : MonoBehaviour
         foreach(GameObject target in targets)
         {
             Cell cell = target.GetComponent<Cell>();
-            GameObject onCell = grid.grid[cell.x, cell.y].GetComponent<CellManager>().gameObjectOnMe;
+            GameObject c = grid.grid[cell.x, cell.y];
+            CellManager cm = c.GetComponent<CellManager>();
+            GameObject onCell = cm.gameObjectOnMe;
             if (onCell == null || onCell.name == "Player")
             {
                 allTargetsDone = false;
@@ -163,7 +169,18 @@ public class LevelController : MonoBehaviour
             }
         }
 
+        if (targets.GetLength(0) == 0)
+            return;
+
         if (allTargetsDone)
             Debug.Log("Winner winner, chicken dinner!");
+    }
+
+    GameObject Spawn(GameObject spawnObject, GameObject cell)
+    {
+        GameObject newObject = Instantiate(spawnObject);
+        newObject.name = spawnObject.name;
+        newObject.GetComponent<Cell>().SetCell(cell);
+        return newObject;
     }
 }

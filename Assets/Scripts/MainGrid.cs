@@ -10,8 +10,8 @@ public class MainGrid : MonoBehaviour
     public int width = 10;
     public int height = 10;
     public GameObject[,] grid;
-    public float gridWidth;
-    public float gridHeight;
+    public float transformWidth;
+    public float transformHeight;
     public float cellWidth;
     public float cellHeight;
 
@@ -19,12 +19,20 @@ public class MainGrid : MonoBehaviour
     {
         if (width <= 0) width = 10;
         if (height <= 0) height = 10;
+    }
 
+    void Start()
+    {
+        OnStart(this);
+    }
+
+    public void SetGrid(int width, int height)
+    {
         grid = new GameObject[width, height];
-        gridWidth = transform.localScale.x;
-        gridHeight = transform.localScale.y;
-        cellWidth = gridWidth / width;
-        cellHeight = gridHeight / height;
+        transformWidth = transform.localScale.x;
+        transformHeight = transform.localScale.y;
+        cellWidth = transformWidth / width;
+        cellHeight = transformHeight / height;
 
         for (int x = 0; x < width; x++)
         {
@@ -33,8 +41,8 @@ public class MainGrid : MonoBehaviour
                 GameObject cell = new GameObject();
                 cell.transform.parent = transform;
                 cell.name = "Cell[" + x + "," + y + "]";
-                float posX = (-gridWidth / 2) + (x * cellWidth) + (cellWidth / 2);
-                float posY = (-gridHeight/ 2) + (y * cellHeight) + (cellHeight/ 2);
+                float posX = (-transformWidth / 2) + (x * cellWidth) + (cellWidth / 2);
+                float posY = (-transformHeight / 2) + (y * cellHeight) + (cellHeight / 2);
                 cell.transform.position = new Vector3(posX, 0, posY);
                 cell.transform.rotation = Quaternion.identity;
                 CellManager cellManager = cell.AddComponent<CellManager>();
@@ -43,17 +51,13 @@ public class MainGrid : MonoBehaviour
             }
         }
     }
-    void Start()
-    {
-        OnStart(this);
-    }
 
     public GameObject GetCell(int x, int y)
     {
-        if (0 > x || x >= gridWidth)
+        if (0 > x || x >= width)
             return null;
 
-        if (0 > y || y >= gridHeight)
+        if (0 > y || y >= height)
             return null;
 
         return grid[x, y];
@@ -67,8 +71,8 @@ public class MainGrid : MonoBehaviour
         GameObject closestCell = grid[gObjCell.x, gObjCell.y];
         Vector3 cellPosition = closestCell.transform.position;
         float minDistance = Vector3.Distance(position, cellPosition);
-        for (int x = 0; x < gridWidth; x++)
-            for (int y = 0; y < gridHeight; y++)
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
             {
                 Vector3 testPosition = grid[x, y].transform.position;
                 float distance = Vector3.Distance(position, testPosition);
