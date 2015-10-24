@@ -4,6 +4,8 @@ using System;
 
 public class LevelController : MonoBehaviour
 {
+    static public int MAX_LEVEL = 2;
+    static public int CURRENT_LEVEL = 1;
     static public event Action OnMove = delegate { };
 
     public MainGrid grid;
@@ -14,15 +16,18 @@ public class LevelController : MonoBehaviour
     public GameObject MoveablePrefab;
     public GameObject TargetPrefab;
     public GameObject PlayerPrefab;
+    public GameObject CompleteMenuPrefab;
+    public GameObject FailMenuPrefab;
     public Level level;
     private int _boxesPushed = 0;
+    private bool _isComplete;
 
     enum Direction { UP, DOWN, LEFT, RIGHT }
 
     void OnEnable()
     {
-        level = Level.Create(LevelReader.ReadLevel("Assets/Level/level1.txt"));
-        grid = GameObject.Find("Ground").GetComponent<MainGrid>();
+        level = Level.Create(LevelReader.ReadLevel("Assets/Level/level" + CURRENT_LEVEL + ".txt"));
+        grid = GameObjectHelper.FindChildByName(gameObject, "Ground").GetComponent<MainGrid>();
         grid.SetGrid(level.width, level.height);
 
         Camera.main.transform.localPosition = new Vector3(0, 10, 0);
@@ -32,6 +37,9 @@ public class LevelController : MonoBehaviour
         InputController.OnDown += MoveDown;
         InputController.OnLeft += MoveLeft;
         InputController.OnRight += MoveRight;
+        CompleteMenu.OnClickMenu += FadeOutAndDestroy;
+        CompleteMenu.OnClickRestart += FadeOutAndDestroy;
+        CompleteMenu.OnClickNextLevel += FadeOutAndDestroy;
 
         OnMove += CheckTargets;
     }
@@ -42,6 +50,9 @@ public class LevelController : MonoBehaviour
         InputController.OnDown -= MoveDown;
         InputController.OnLeft -= MoveLeft;
         InputController.OnRight -= MoveRight;
+        CompleteMenu.OnClickMenu -= FadeOutAndDestroy;
+        CompleteMenu.OnClickRestart -= FadeOutAndDestroy;
+        CompleteMenu.OnClickNextLevel -= FadeOutAndDestroy;
 
         OnMove -= CheckTargets;
     }
@@ -52,9 +63,9 @@ public class LevelController : MonoBehaviour
         GameObject moveables = new GameObject() { name = "Moveable Boxes" };
         GameObject targets = new GameObject() { name = "Targets" };
 
-        solids.transform.parent = transform.parent;
-        moveables.transform.parent = transform.parent;
-        targets.transform.parent = transform.parent;
+        solids.transform.parent = transform;
+        moveables.transform.parent = transform;
+        targets.transform.parent = transform;
 
         for (int x = 0; x < level.width; x++)
             for (int y = 0; y < level.height; y++)
@@ -67,7 +78,7 @@ public class LevelController : MonoBehaviour
                         break;
                     case 'S':
                         player = Spawn(PlayerPrefab, grid.GetCell(x, y));
-                        player.transform.parent = transform.parent;
+                        player.transform.parent = transform;
                         playerCell = player.GetComponent<Cell>();
                         break;
                     case 'B':
@@ -82,6 +93,15 @@ public class LevelController : MonoBehaviour
                         grid.GetCell(x, y).GetComponent<CellManager>().gameObjectOnMe = null;
                         break;
                 }
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.F) && !_isComplete)
+        {
+            _isComplete = true;
+            Instantiate(FailMenuPrefab).name = FailMenuPrefab.name;
+        }
     }
 
     void MoveUp() { Move(playerCell, Direction.UP); }
@@ -165,7 +185,7 @@ public class LevelController : MonoBehaviour
     {
         bool allTargetsDone = true;
         GameObject[] targets = GameObject.FindGameObjectsWithTag("Target");
-        foreach(GameObject target in targets)
+        foreach (GameObject target in targets)
         {
             Cell cell = target.GetComponent<Cell>();
             GameObject c = grid.grid[cell.x, cell.y];
@@ -181,8 +201,12 @@ public class LevelController : MonoBehaviour
         if (targets.GetLength(0) == 0)
             return;
 
-        if (allTargetsDone)
-            Debug.Log("Winner winner, chicken dinner!");
+        if (allTargetsDone && !_isComplete)
+        {
+            //Pause the game?
+            _isComplete = true;
+            Instantiate(CompleteMenuPrefab).name = CompleteMenuPrefab.name;
+        }
     }
 
     GameObject Spawn(GameObject spawnObject, GameObject cell)
@@ -191,5 +215,10 @@ public class LevelController : MonoBehaviour
         newObject.name = spawnObject.name;
         newObject.GetComponent<Cell>().SetCell(cell);
         return newObject;
+    }
+
+    void FadeOutAndDestroy()
+    {
+        Destroy(gameObject);
     }
 }

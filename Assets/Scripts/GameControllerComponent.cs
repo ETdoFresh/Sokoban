@@ -13,6 +13,9 @@ public class GameControllerComponent : MonoBehaviour
 
         Logo.OnLogoFinish += StartMenu;
         Menu.OnClickStart += StartGame;
+        CompleteMenu.OnClickMenu += StartMenu;
+        CompleteMenu.OnClickRestart += StartGame;
+        CompleteMenu.OnClickNextLevel += StartGameNextLevel;
     }
 
     void OnDisable()
@@ -20,6 +23,9 @@ public class GameControllerComponent : MonoBehaviour
         //GameController.component = null;
         Logo.OnLogoFinish -= StartMenu;
         Menu.OnClickStart -= StartGame;
+        CompleteMenu.OnClickMenu -= StartMenu;
+        CompleteMenu.OnClickRestart -= StartGame;
+        CompleteMenu.OnClickNextLevel -= StartGameNextLevel;
     }
     
     void Start()
@@ -34,13 +40,18 @@ public class GameControllerComponent : MonoBehaviour
 
     void StartMenu()
     {
-        Logo.OnLogoFinish -= StartMenu;
         Instantiate(menu).name = menu.name;
     }
 
     void StartGame()
     {
-        Menu.OnClickStart -= StartGame;
         Instantiate(game).name = game.name;
+    }
+
+    void StartGameNextLevel()
+    {
+        LevelController.CURRENT_LEVEL = 
+            Math.Min(LevelController.CURRENT_LEVEL + 1, LevelController.MAX_LEVEL);
+        StartGame();
     }
 }

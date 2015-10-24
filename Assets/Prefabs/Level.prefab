@@ -8,24 +8,9 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 461154}
+  - 114: {fileID: 11417928}
   m_Layer: 0
-  m_Name: Game
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!1 &183388
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 4
-  m_Component:
-  - 4: {fileID: 435680}
-  - 114: {fileID: 11426338}
-  m_Layer: 0
-  m_Name: Level Controller
+  m_Name: Level
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -61,18 +46,6 @@ Transform:
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_Children: []
   m_Father: {fileID: 461154}
-  m_RootOrder: 1
---- !u!4 &435680
-Transform:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 183388}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 461154}
   m_RootOrder: 0
 --- !u!4 &461154
 Transform:
@@ -84,7 +57,6 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 435680}
   - {fileID: 428640}
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -131,12 +103,12 @@ MeshCollider:
   serializedVersion: 2
   m_Convex: 0
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &11426338
+--- !u!114 &11417928
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 183388}
+  m_GameObject: {fileID: 146894}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 345c70a96f79526408096bb9d6698200, type: 3}
@@ -150,6 +122,8 @@ MonoBehaviour:
   MoveablePrefab: {fileID: 176208, guid: 23f4fe5abb40ca841b3f9b1bcf5d7e4e, type: 2}
   TargetPrefab: {fileID: 140660, guid: 1d177a410781afd478bf0d42112bea17, type: 2}
   PlayerPrefab: {fileID: 138618, guid: 99155d06fd3763c49a6002a004d381f4, type: 2}
+  CompleteMenuPrefab: {fileID: 164660, guid: d29dcb0d9d29282459e53ce01db96b87, type: 2}
+  FailMenuPrefab: {fileID: 182216, guid: 9b4b11cb5a1f78b4c9dc1f7caa3469ea, type: 2}
 --- !u!114 &11477864
 MonoBehaviour:
   m_ObjectHideFlags: 1
