@@ -32,10 +32,17 @@ S02E04 - Sokoban - Read Level File
   - LevelController OnEnable create grid object
   - LevelController Start instantiates object from Level Class
 
-S02E05 - Sokoban - Basic UI
-- Menu Screen with Start Button
-- Level Select
+S02E05 - Sokoban - Basic UI / Game Flow
+- Logo Scene
+- Menu Scene with Start Button
+- Game Scene (what we've already done so far)
+- Game Controller to mange the transitions between Screens (Prefabs)
+- Changed Camera on Sokoban Scene
+
+S02E06 - Sokoban - More on Game Flow
 - Restart Level
+- Level Select
+- More Levels!
 
 -----------------------------------------------------------------------------------------
 Bugs

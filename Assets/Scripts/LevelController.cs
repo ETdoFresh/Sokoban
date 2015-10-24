@@ -25,6 +25,9 @@ public class LevelController : MonoBehaviour
         grid = GameObject.Find("Ground").GetComponent<MainGrid>();
         grid.SetGrid(level.width, level.height);
 
+        Camera.main.transform.localPosition = new Vector3(0, 10, 0);
+        Camera.main.transform.localRotation = Quaternion.Euler(90, 0, 0);
+
         InputController.OnUp += MoveUp;
         InputController.OnDown += MoveDown;
         InputController.OnLeft += MoveLeft;
@@ -48,6 +51,11 @@ public class LevelController : MonoBehaviour
         GameObject solids = new GameObject() { name = "Solids" };
         GameObject moveables = new GameObject() { name = "Moveable Boxes" };
         GameObject targets = new GameObject() { name = "Targets" };
+
+        solids.transform.parent = transform.parent;
+        moveables.transform.parent = transform.parent;
+        targets.transform.parent = transform.parent;
+
         for (int x = 0; x < level.width; x++)
             for (int y = 0; y < level.height; y++)
                 switch (level.data[x, y])
@@ -59,6 +67,7 @@ public class LevelController : MonoBehaviour
                         break;
                     case 'S':
                         player = Spawn(PlayerPrefab, grid.GetCell(x, y));
+                        player.transform.parent = transform.parent;
                         playerCell = player.GetComponent<Cell>();
                         break;
                     case 'B':
