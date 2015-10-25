@@ -46,6 +46,8 @@ S02E06 - Sokoban - More on Game Flow
 S02E07 - Sokoban - Level Select and Scoring
 - Count Number of Moves
 - Level Select
+
+S02E08 - Sokoban - Bug Fixing Session
 - Stop movement when Menu Screen is up!
 - Resize Ground based on level size
 

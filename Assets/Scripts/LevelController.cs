@@ -40,8 +40,6 @@ public class LevelController : MonoBehaviour
         CompleteMenu.OnClickMenu += FadeOutAndDestroy;
         CompleteMenu.OnClickRestart += FadeOutAndDestroy;
         CompleteMenu.OnClickNextLevel += FadeOutAndDestroy;
-
-        OnMove += CheckTargets;
     }
 
     void OnDisable()
@@ -53,8 +51,6 @@ public class LevelController : MonoBehaviour
         CompleteMenu.OnClickMenu -= FadeOutAndDestroy;
         CompleteMenu.OnClickRestart -= FadeOutAndDestroy;
         CompleteMenu.OnClickNextLevel -= FadeOutAndDestroy;
-
-        OnMove -= CheckTargets;
     }
 
     void Start()
@@ -131,10 +127,14 @@ public class LevelController : MonoBehaviour
         }
 
         if (isValidMove(destinationCell, direction))
+        {
             cell.SetCell(destinationCell);
+            if (cell.gameObject == player)
+                OnMove();
+        }
 
         _boxesPushed = 0;
-        OnMove();
+        CheckTargets();
     }
 
     bool isValidMove(GameObject cell, Direction direction)

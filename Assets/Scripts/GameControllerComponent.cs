@@ -3,16 +3,18 @@ using UnityEngine;
 
 public class GameControllerComponent : MonoBehaviour
 {
-    public GameObject logo;
-    public GameObject menu;
-    public GameObject game;
+    public GameObject logoPrefab;
+    public GameObject menuPrefab;
+    public GameObject levelSelectPrefab;
+    public GameObject levelPrefab;
 
     void OnEnable()
     {
         GameController.component = this;
 
         Logo.OnLogoFinish += StartMenu;
-        Menu.OnClickStart += StartGame;
+        Menu.OnClickStart += StartLevelSelect ;
+        LevelSelect.OnClickLevel += StartGameAtLevel;
         CompleteMenu.OnClickMenu += StartMenu;
         CompleteMenu.OnClickRestart += StartGame;
         CompleteMenu.OnClickNextLevel += StartGameNextLevel;
@@ -35,23 +37,34 @@ public class GameControllerComponent : MonoBehaviour
 
     void StartLogo()
     {
-        Instantiate(logo).name = logo.name;        
+        Instantiate(logoPrefab).name = logoPrefab.name;        
     }
 
     void StartMenu()
     {
-        Instantiate(menu).name = menu.name;
+        Instantiate(menuPrefab).name = menuPrefab.name;
+    }
+
+    void StartLevelSelect()
+    {
+        Instantiate(levelSelectPrefab).name = levelSelectPrefab.name;
     }
 
     void StartGame()
     {
-        Instantiate(game).name = game.name;
+        Instantiate(levelPrefab).name = levelPrefab.name;
     }
 
     void StartGameNextLevel()
     {
         LevelController.CURRENT_LEVEL = 
             Math.Min(LevelController.CURRENT_LEVEL + 1, LevelController.MAX_LEVEL);
+        StartGame();
+    }
+
+    void StartGameAtLevel(int level)
+    {
+        LevelController.CURRENT_LEVEL = Math.Min(level, LevelController.MAX_LEVEL);
         StartGame();
     }
 }
