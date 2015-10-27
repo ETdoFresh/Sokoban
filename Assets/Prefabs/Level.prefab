@@ -175,6 +175,7 @@ MonoBehaviour:
   PlayerPrefab: {fileID: 138618, guid: 99155d06fd3763c49a6002a004d381f4, type: 2}
   CompleteMenuPrefab: {fileID: 164660, guid: d29dcb0d9d29282459e53ce01db96b87, type: 2}
   FailMenuPrefab: {fileID: 182216, guid: 9b4b11cb5a1f78b4c9dc1f7caa3469ea, type: 2}
+  PauseMenuPrefab: {fileID: 135712, guid: 0963ecb89de1d42459ca01070d347d2c, type: 2}
 --- !u!114 &11443968
 MonoBehaviour:
   m_ObjectHideFlags: 1

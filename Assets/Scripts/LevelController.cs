@@ -18,9 +18,11 @@ public class LevelController : MonoBehaviour
     public GameObject PlayerPrefab;
     public GameObject CompleteMenuPrefab;
     public GameObject FailMenuPrefab;
+    public GameObject PauseMenuPrefab;
     public Level level;
     private int _boxesPushed = 0;
     private bool _isComplete;
+    private bool _isPause;
 
     enum Direction { UP, DOWN, LEFT, RIGHT }
 
@@ -28,6 +30,7 @@ public class LevelController : MonoBehaviour
     {
         level = Level.Create(LevelReader.ReadLevel("Assets/Level/level" + CURRENT_LEVEL + ".txt"));
         grid = GameObjectHelper.FindChildByName(gameObject, "Ground").GetComponent<MainGrid>();
+        grid.transform.localScale = new Vector3(level.width, level.height, level.height);
         grid.SetGrid(level.width, level.height);
 
         Camera.main.transform.localPosition = new Vector3(0, 10, 0);
@@ -40,6 +43,7 @@ public class LevelController : MonoBehaviour
         CompleteMenu.OnClickMenu += FadeOutAndDestroy;
         CompleteMenu.OnClickRestart += FadeOutAndDestroy;
         CompleteMenu.OnClickNextLevel += FadeOutAndDestroy;
+        PauseMenu.OnClickResume += ResumeGame;
     }
 
     void OnDisable()
@@ -51,6 +55,7 @@ public class LevelController : MonoBehaviour
         CompleteMenu.OnClickMenu -= FadeOutAndDestroy;
         CompleteMenu.OnClickRestart -= FadeOutAndDestroy;
         CompleteMenu.OnClickNextLevel -= FadeOutAndDestroy;
+        PauseMenu.OnClickResume -= ResumeGame;
     }
 
     void Start()
@@ -97,7 +102,31 @@ public class LevelController : MonoBehaviour
         {
             _isComplete = true;
             Instantiate(FailMenuPrefab).name = FailMenuPrefab.name;
+            PauseGame();
         }
+        if (Input.GetKeyDown(KeyCode.P) && !_isComplete && !_isPause)
+        {
+            Instantiate(PauseMenuPrefab).name = PauseMenuPrefab.name;
+            PauseGame();
+        }
+    }
+
+    private void PauseGame()
+    {
+        _isPause = true;
+        InputController.OnUp -= MoveUp;
+        InputController.OnDown -= MoveDown;
+        InputController.OnLeft -= MoveLeft;
+        InputController.OnRight -= MoveRight;
+    }
+
+    private void ResumeGame()
+    {
+        _isPause = false;
+        InputController.OnUp += MoveUp;
+        InputController.OnDown += MoveDown;
+        InputController.OnLeft += MoveLeft;
+        InputController.OnRight += MoveRight;
     }
 
     void MoveUp() { Move(playerCell, Direction.UP); }
@@ -203,7 +232,7 @@ public class LevelController : MonoBehaviour
 
         if (allTargetsDone && !_isComplete)
         {
-            //Pause the game?
+            PauseGame();
             _isComplete = true;
             Instantiate(CompleteMenuPrefab).name = CompleteMenuPrefab.name;
         }

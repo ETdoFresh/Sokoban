@@ -51,6 +51,21 @@ S02E08 - Sokoban - Bug Fixing Session
 - Stop movement when Menu Screen is up!
 - Resize Ground based on level size
 
+S02E09 - Sokoban - Adding Cinematics
+- Create a structure so that cinematics happen before, after, or during the level
+  - Pause Game, and watch (like a mini movie)
+  - Cinematics for this game should be no more than 10-20 seconds
+- Finish Cinematics (After last level)
+- Come up with a cinema script (like text file explaining camera, sounds, effects, etcs)
+
+  Later...
+  - Create destructible boxes... ie fail condition (x moves and box go boom)
+  - Create a timer (another fail condition perhaps?)
+  - Level changing dynamics, such as additional boxes and targets
+  - Create animation as player moves from cell to cell
+  - Add some push sounds and basic music
+  - Track scores, track progress, track level completion, etc.
+
 -----------------------------------------------------------------------------------------
 Bugs
 -----------------------------------------------------------------------------------------
