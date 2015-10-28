@@ -19,6 +19,9 @@ public class LevelController : MonoBehaviour
     public GameObject CompleteMenuPrefab;
     public GameObject FailMenuPrefab;
     public GameObject PauseMenuPrefab;
+    public GameObject StartingCinematicPrefab;
+    public GameObject MiddleCinematicPrefab;
+    public GameObject EndingCinematicPrefab;
     public Level level;
     private int _boxesPushed = 0;
     private bool _isComplete;
@@ -28,14 +31,6 @@ public class LevelController : MonoBehaviour
 
     void OnEnable()
     {
-        level = Level.Create(LevelReader.ReadLevel("Assets/Level/level" + CURRENT_LEVEL + ".txt"));
-        grid = GameObjectHelper.FindChildByName(gameObject, "Ground").GetComponent<MainGrid>();
-        grid.transform.localScale = new Vector3(level.width, level.height, level.height);
-        grid.SetGrid(level.width, level.height);
-
-        Camera.main.transform.localPosition = new Vector3(0, 10, 0);
-        Camera.main.transform.localRotation = Quaternion.Euler(90, 0, 0);
-
         InputController.OnUp += MoveUp;
         InputController.OnDown += MoveDown;
         InputController.OnLeft += MoveLeft;
@@ -44,6 +39,31 @@ public class LevelController : MonoBehaviour
         CompleteMenu.OnClickRestart += FadeOutAndDestroy;
         CompleteMenu.OnClickNextLevel += FadeOutAndDestroy;
         PauseMenu.OnClickResume += ResumeGame;
+
+        CreateLevel();
+        PlayCinematic(StartingCinematicPrefab);
+    }
+
+    void CreateLevel()
+    {
+        level = Level.Create(LevelReader.ReadLevel("Assets/Level/level" + CURRENT_LEVEL + ".txt"));
+        grid = GameObjectHelper.FindChildByName(gameObject, "Ground").GetComponent<MainGrid>();
+        grid.transform.localScale = new Vector3(level.width, level.height, level.height);
+        grid.SetGrid(level.width, level.height);
+        Camera.main.transform.localPosition = new Vector3(0, 10, 0);
+        Camera.main.transform.localRotation = Quaternion.Euler(90, 0, 0);
+    }
+
+    void PlayCinematic(GameObject CinematicPrefab, bool resume = true)
+    {
+        if (CinematicPrefab == null)
+            return;
+
+        PauseGame();
+        Instantiate(CinematicPrefab).name = CinematicPrefab.name;
+
+        if (resume)
+            Cinematic.OnCinematicFinish += ResumeGame;
     }
 
     void OnDisable()
@@ -98,16 +118,21 @@ public class LevelController : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F) && !_isComplete)
+        if (Input.GetKeyDown(KeyCode.F) && !_isComplete && !_isPause)
         {
             _isComplete = true;
             Instantiate(FailMenuPrefab).name = FailMenuPrefab.name;
+            PlayCinematic(EndingCinematicPrefab, false);
             PauseGame();
         }
         if (Input.GetKeyDown(KeyCode.P) && !_isComplete && !_isPause)
         {
             Instantiate(PauseMenuPrefab).name = PauseMenuPrefab.name;
             PauseGame();
+        }
+        if (Input.GetKeyDown(KeyCode.C) && !_isComplete && !_isPause)
+        {
+            PlayCinematic(MiddleCinematicPrefab);
         }
     }
 
@@ -122,6 +147,7 @@ public class LevelController : MonoBehaviour
 
     private void ResumeGame()
     {
+        Cinematic.OnCinematicFinish -= ResumeGame;
         _isPause = false;
         InputController.OnUp += MoveUp;
         InputController.OnDown += MoveDown;
@@ -232,6 +258,7 @@ public class LevelController : MonoBehaviour
 
         if (allTargetsDone && !_isComplete)
         {
+            PlayCinematic(EndingCinematicPrefab, false);
             PauseGame();
             _isComplete = true;
             Instantiate(CompleteMenuPrefab).name = CompleteMenuPrefab.name;

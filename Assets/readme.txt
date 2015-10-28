@@ -51,16 +51,19 @@ S02E08 - Sokoban - Bug Fixing Session
 - Stop movement when Menu Screen is up!
 - Resize Ground based on level size
 
-S02E09 - Sokoban - Adding Cinematics
+S02E09 - Sokoban - Cinematic Component
 - Create a structure so that cinematics happen before, after, or during the level
   - Pause Game, and watch (like a mini movie)
   - Cinematics for this game should be no more than 10-20 seconds
-- Finish Cinematics (After last level)
-- Come up with a cinema script (like text file explaining camera, sounds, effects, etcs)
+
+S02E10 - Sokoban - Create a destrudible box!
+- Create destructible boxes... ie fail condition (x moves and box go boom)
+- Create a timer (another fail condition perhaps?)
+
 
   Later...
-  - Create destructible boxes... ie fail condition (x moves and box go boom)
-  - Create a timer (another fail condition perhaps?)
+  - Finish Cinematics (After last level, ie THE END)
+  - Come up with a cinema script (like text file explaining camera, sounds, effects, etc)
   - Level changing dynamics, such as additional boxes and targets
   - Create animation as player moves from cell to cell
   - Add some push sounds and basic music
@@ -69,3 +72,5 @@ S02E09 - Sokoban - Adding Cinematics
 -----------------------------------------------------------------------------------------
 Bugs
 -----------------------------------------------------------------------------------------
+- On Ending Cinematic, the cinematic destroys itself... it shouldn't
+- Ending Cinematic show up during/after Complete Menu shows up. Should play cinematic first, then show complete menu
