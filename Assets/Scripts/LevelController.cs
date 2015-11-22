@@ -1,13 +1,21 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using System.IO;
+using Planning;
+using Planning.IO;
+using StateSpaceSearchProject;
+using HeuristicSearchPlanner;
 
 public class LevelController : MonoBehaviour
 {
     static public int MAX_LEVEL = 2;
     static public int CURRENT_LEVEL = 1;
     static public event Action OnMove = delegate { };
+    static public TextAsset domain;
+    static public int num_times_enables = 0;
 
+    public int numberTimesEnables = 0;
     public MainGrid grid;
     public GameObject player;
     public Cell playerCell;
@@ -31,6 +39,9 @@ public class LevelController : MonoBehaviour
 
     void OnEnable()
     {
+        num_times_enables++;
+        numberTimesEnables = num_times_enables;
+
         InputController.OnUp += MoveUp;
         InputController.OnDown += MoveDown;
         InputController.OnLeft += MoveLeft;
@@ -39,9 +50,6 @@ public class LevelController : MonoBehaviour
         CompleteMenu.OnClickRestart += FadeOutAndDestroy;
         CompleteMenu.OnClickNextLevel += FadeOutAndDestroy;
         PauseMenu.OnClickResume += ResumeGame;
-
-        CreateLevel();
-        PlayCinematic(StartingCinematicPrefab);
     }
 
     void CreateLevel()
@@ -80,13 +88,14 @@ public class LevelController : MonoBehaviour
 
     void Start()
     {
+        CreateLevel();
         GameObject solids = new GameObject() { name = "Solids" };
         GameObject moveables = new GameObject() { name = "Moveable Boxes" };
         GameObject targets = new GameObject() { name = "Targets" };
 
-        solids.transform.parent = transform;
-        moveables.transform.parent = transform;
-        targets.transform.parent = transform;
+        solids.transform.SetParent(transform);
+        moveables.transform.SetParent(transform);
+        targets.transform.SetParent(transform);
 
         for (int x = 0; x < level.width; x++)
             for (int y = 0; y < level.height; y++)
@@ -95,25 +104,40 @@ public class LevelController : MonoBehaviour
                     case '1':
                         GameObject solid = Spawn(SolidPrefab, grid.GetCell(x, y));
                         solid.name += " " + solids.transform.childCount;
-                        solid.transform.parent = solids.transform;
+                        solid.transform.SetParent(solids.transform);
                         break;
                     case 'S':
                         player = Spawn(PlayerPrefab, grid.GetCell(x, y));
-                        player.transform.parent = transform;
+                        player.transform.SetParent(transform);
                         playerCell = player.GetComponent<Cell>();
                         break;
                     case 'B':
                         GameObject box = Spawn(MoveablePrefab, grid.GetCell(x, y));
                         box.name += " " + moveables.transform.childCount;
-                        box.transform.parent = moveables.transform;
+                        box.transform.SetParent(moveables.transform);
                         break;
                     case 'T':
                         GameObject target = Spawn(TargetPrefab, grid.GetCell(x, y));
                         target.name += " " + targets.transform.childCount;
-                        target.transform.parent = targets.transform;
+                        target.transform.SetParent(targets.transform);
                         grid.GetCell(x, y).GetComponent<CellManager>().gameObjectOnMe = null;
                         break;
                 }
+
+        if (domain == null)
+            domain = Resources.Load<TextAsset>("Sokoban_domain");
+
+        LevelState ls = new LevelState(gameObject, level);
+        string pddl = ls.ToPDDL();
+        using (StreamWriter writer = new StreamWriter("Sokoban_problem.txt"))
+            writer.Write(pddl);
+
+        Problem problem = PDDLReader.GetProblem(domain.text, pddl);
+        StateSpaceProblem ssProblem = new StateSpaceProblem(problem);
+        HSPlanner hsp = new HSPlanner(ssProblem);
+        Plan plan = hsp.findNextSolution();
+
+        PlayCinematic(StartingCinematicPrefab);
     }
 
     void Update()
