@@ -59,7 +59,7 @@ namespace Planning.Util
                     if (_array[i] == null)
                         hashCode = 0;
                     else
-                        ((object)_array[i]).GetHashCode();
+                        hashCode += ((object)_array[i]).GetHashCode();
                 }
             }
         }

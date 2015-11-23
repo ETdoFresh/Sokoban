@@ -258,6 +258,18 @@ Prefab:
       propertyPath: m_RootOrder
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 100028, guid: cfbcf0e7846b9d44189782f3693d3698, type: 2}
+      propertyPath: m_Name
+      value: ViewPDDL
+      objectReference: {fileID: 0}
+    - target: {fileID: 100126, guid: cfbcf0e7846b9d44189782f3693d3698, type: 2}
+      propertyPath: m_Name
+      value: Solve
+      objectReference: {fileID: 0}
+    - target: {fileID: 11415296, guid: cfbcf0e7846b9d44189782f3693d3698, type: 2}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: GetPDDL
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cfbcf0e7846b9d44189782f3693d3698, type: 2}
   m_IsPrefabParent: 0

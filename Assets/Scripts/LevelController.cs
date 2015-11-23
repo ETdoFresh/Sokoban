@@ -6,6 +6,8 @@ using Planning;
 using Planning.IO;
 using StateSpaceSearchProject;
 using HeuristicSearchPlanner;
+using Planning.Logic;
+using System.Collections.Generic;
 
 public class LevelController : MonoBehaviour
 {
@@ -34,6 +36,7 @@ public class LevelController : MonoBehaviour
     private int _boxesPushed = 0;
     private bool _isComplete;
     private bool _isPause;
+    private StateSpaceProblem _ssProblem;
 
     enum Direction { UP, DOWN, LEFT, RIGHT }
 
@@ -126,16 +129,6 @@ public class LevelController : MonoBehaviour
 
         if (domain == null)
             domain = Resources.Load<TextAsset>("Sokoban_domain");
-
-        LevelState ls = new LevelState(gameObject, level);
-        string pddl = ls.ToPDDL();
-        using (StreamWriter writer = new StreamWriter("Sokoban_problem.txt"))
-            writer.Write(pddl);
-
-        Problem problem = PDDLReader.GetProblem(domain.text, pddl);
-        StateSpaceProblem ssProblem = new StateSpaceProblem(problem);
-        HSPlanner hsp = new HSPlanner(ssProblem);
-        Plan plan = hsp.findNextSolution();
 
         PlayCinematic(StartingCinematicPrefab);
     }
@@ -300,5 +293,29 @@ public class LevelController : MonoBehaviour
     void FadeOutAndDestroy()
     {
         Destroy(gameObject);
+    }
+
+    public void GetPDDL()
+    {
+        LevelState ls = new LevelState(gameObject, level);
+        string pddl = ls.ToPDDL();
+        using (StreamWriter writer = new StreamWriter("Sokoban_problem.txt"))
+            writer.Write(pddl);
+
+        Problem problem = PDDLReader.GetProblem(domain.text, pddl);
+        _ssProblem = new StateSpaceProblem(problem);
+        Debug.Log(_ssProblem);
+    }
+
+    public void GetPlan()
+    {
+        HSPlanner hsp = new HSPlanner(_ssProblem);
+        Plan plan = hsp.findNextSolution();
+
+        using (StreamWriter writer = new StreamWriter("Sokoban_problem.txt", true))
+            foreach (Step step in plan)
+                writer.WriteLine(step);
+
+        Debug.Log(plan);
     }
 }

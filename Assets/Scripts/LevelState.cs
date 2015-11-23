@@ -25,73 +25,73 @@ public class LevelState
     public string ToPDDL()
     {
         string pddl = "";
-        pddl += string.Format("(:problem Sokoban_Level_{0}\n", levelNumber);
-        pddl += string.Format("  (:domain Sokoban_domain)\n");
-        pddl += string.Format("  (:objects\n");
+        pddl += string.Format("(:problem Sokoban_Level_{0}\r\n", levelNumber);
+        pddl += string.Format("  (:domain Sokoban_domain)\r\n");
+        pddl += string.Format("  (:objects\r\n");
 
         foreach (GameObject cell in _cells)
         {
             CellManager cellManager = cell.GetComponent<CellManager>();
-            pddl += string.Format("    Cell_{0}_{1} - cell\n", cellManager._x, cellManager._y);
+            pddl += string.Format("    Cell_{0}_{1} - cell\r\n", cellManager._x, cellManager._y);
         }
         pddl += string.Format("  )\n");
-        pddl += string.Format("  (:initial\n");
-        pddl += string.Format("    (and\n");
+        pddl += string.Format("  (:initial\r\n");
+        pddl += string.Format("    (and\r\n");
 
         Cell playerCell = _player.GetComponent<Cell>();
-        pddl += string.Format("      (has_player Cell_{0}_{1})\n", playerCell.x, playerCell.y);
+        pddl += string.Format("      (has_player Cell_{0}_{1})\r\n", playerCell.x, playerCell.y);
 
         foreach (GameObject box in _moveableBoxes)
         {
             Cell cell = box.GetComponent<Cell>();
-            pddl += string.Format("      (has_box Cell_{0}_{1})\n", cell.x, cell.y);
+            pddl += string.Format("      (has_box Cell_{0}_{1})\r\n", cell.x, cell.y);
         }
 
         foreach (GameObject solid in _solids)
         {
             Cell cell = solid.GetComponent<Cell>();
-            pddl += string.Format("      (is_solid Cell_{0}_{1})\n", cell.x, cell.y);
+            pddl += string.Format("      (is_solid Cell_{0}_{1})\r\n", cell.x, cell.y);
         }
 
         for (int x = 0; x < _level.width; x++)
             for (int y = 0; y < _level.height; y++)
             {
                 if (x - 1 >= 0)
-                    pddl += string.Format("      (adjacent Cell_{0}_{2} Cell_{1}_{2})\n", x, x - 1, y);
+                    pddl += string.Format("      (adjacent Cell_{0}_{2} Cell_{1}_{2})\r\n", x, x - 1, y);
                 if (x + 1 < _level.width)
-                    pddl += string.Format("      (adjacent Cell_{0}_{2} Cell_{1}_{2})\n", x, x + 1, y);
+                    pddl += string.Format("      (adjacent Cell_{0}_{2} Cell_{1}_{2})\r\n", x, x + 1, y);
                 if (y - 1 >= 0)
-                    pddl += string.Format("      (adjacent Cell_{0}_{1} Cell_{0}_{2})\n", x, y, y - 1);
+                    pddl += string.Format("      (adjacent Cell_{0}_{1} Cell_{0}_{2})\r\n", x, y, y - 1);
                 if (y + 1 < _level.height)
-                    pddl += string.Format("      (adjacent Cell_{0}_{1} Cell_{0}_{2})\n", x, y, y + 1);
+                    pddl += string.Format("      (adjacent Cell_{0}_{1} Cell_{0}_{2})\r\n", x, y, y + 1);
             }
 
         for (int x = 0; x < _level.width; x++)
             for (int y = 0; y < _level.height; y++)
             {
                 if (x - 2 > 0)
-                    pddl += string.Format("      (adjacent_2 Cell_{0}_{2} Cell_{1}_{2})\n", x, x - 2, y);
+                    pddl += string.Format("      (adjacent_2 Cell_{0}_{2} Cell_{1}_{2})\r\n", x, x - 2, y);
                 if (x + 2 < _level.width)
-                    pddl += string.Format("      (adjacent_2 Cell_{0}_{2} Cell_{1}_{2})\n", x, x + 2, y);
+                    pddl += string.Format("      (adjacent_2 Cell_{0}_{2} Cell_{1}_{2})\r\n", x, x + 2, y);
                 if (y - 2 > 0)
-                    pddl += string.Format("      (adjacent_2 Cell_{0}_{1} Cell_{0}_{2})\n", x, y, y - 2);
+                    pddl += string.Format("      (adjacent_2 Cell_{0}_{1} Cell_{0}_{2})\r\n", x, y, y - 2);
                 if (y + 2 < _level.height)
-                    pddl += string.Format("      (adjacent_2 Cell_{0}_{1} Cell_{0}_{2})\n", x, y, y + 2);
+                    pddl += string.Format("      (adjacent_2 Cell_{0}_{1} Cell_{0}_{2})\r\n", x, y, y + 2);
             }
 
-        pddl += string.Format("    )\n");
-        pddl += string.Format("  )\n");
-        pddl += string.Format("  (:goal\n");
-        pddl += string.Format("    (and\n");
+        pddl += string.Format("    )\r\n");
+        pddl += string.Format("  )\r\n");
+        pddl += string.Format("  (:goal\r\n");
+        pddl += string.Format("    (and\r\n");
 
         foreach (GameObject target in _targets)
         {
             Cell cell = target.GetComponent<Cell>();
-            pddl += string.Format("      (has_box Cell_{0}_{1})\n", cell.x, cell.y);
+            pddl += string.Format("      (has_box Cell_{0}_{1})\r\n", cell.x, cell.y);
         }
-        pddl += string.Format("    )\n");
-        pddl += string.Format("  )\n");
-        pddl += string.Format(")\n");
+        pddl += string.Format("    )\r\n");
+        pddl += string.Format("  )\r\n");
+        pddl += string.Format(")\r\n");
 
         return pddl;
     }

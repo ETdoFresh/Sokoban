@@ -21,7 +21,9 @@ namespace HeuristicSearchPlanner
             : base(problem)
         {
             GetAllSteps();
-            GetAllLiterals(); // Get Literals by iterating through each operator and objects (not all steps)
+            FactGatherer factGatherer = new FactGatherer(problem);
+            _allLiterals = factGatherer.GetAllFacts();
+
             CreateHSPNodes();
 
             _goals = new List<HSPNode>();
@@ -116,29 +118,6 @@ namespace HeuristicSearchPlanner
         private void GetAllSteps()
         {
             _allSteps = (problem as StateSpaceProblem).steps;
-        }
-
-        private void GetAllLiterals()
-        {
-            _allLiterals = new List<Literal>();
-            foreach (Step step in _allSteps)
-            {
-                foreach (Literal literal in ConversionUtil.expressionToLiterals(step.effect))
-                    if (!_allLiterals.Contains(literal))
-                        _allLiterals.Add(literal);
-
-                foreach (Literal literal in ConversionUtil.expressionToLiterals(step.precondition))
-                    if (!_allLiterals.Contains(literal))
-                        _allLiterals.Add(literal);
-
-                foreach (Literal literal in ConversionUtil.expressionToLiterals(step.effect))
-                    if (!_allLiterals.Contains(literal.Negate()))
-                        _allLiterals.Add(literal.Negate());
-
-                foreach (Literal literal in ConversionUtil.expressionToLiterals(step.precondition))
-                    if (!_allLiterals.Contains(literal.Negate()))
-                        _allLiterals.Add(literal.Negate());
-            }
         }
 
         private List<Literal> GetImpliedLiterals(List<Literal> statedLiterals)
