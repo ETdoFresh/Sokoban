@@ -270,6 +270,18 @@ Prefab:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: GetPDDL
       objectReference: {fileID: 0}
+    - target: {fileID: 11417928, guid: cfbcf0e7846b9d44189782f3693d3698, type: 2}
+      propertyPath: StartingCinematicPrefab
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417928, guid: cfbcf0e7846b9d44189782f3693d3698, type: 2}
+      propertyPath: MiddleCinematicPrefab
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 11417928, guid: cfbcf0e7846b9d44189782f3693d3698, type: 2}
+      propertyPath: EndingCinematicPrefab
+      value: 
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cfbcf0e7846b9d44189782f3693d3698, type: 2}
   m_IsPrefabParent: 0

@@ -28,6 +28,8 @@ public class MainGrid : MonoBehaviour
 
     public void SetGrid(int width, int height)
     {
+        this.width = width;
+        this.height = height;
         grid = new GameObject[width, height];
         transformWidth = transform.localScale.x;
         transformHeight = transform.localScale.y;

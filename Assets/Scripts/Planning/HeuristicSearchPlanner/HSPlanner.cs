@@ -48,6 +48,26 @@ namespace HeuristicSearchPlanner
             return null;
         }
 
+        public Dictionary<StateSpaceNode, int> GetNextStatesCosts(int depth = 1)
+        {
+            Dictionary<StateSpaceNode, int> statesCosts = new Dictionary<StateSpaceNode, int>();
+            GetNextStateCosts(depth, root, statesCosts);
+            return statesCosts;
+        }
+
+        private void GetNextStateCosts(int depth, StateSpaceNode parent, Dictionary<StateSpaceNode, int> statesCosts)
+        {
+            if (depth <= 0)
+                return;
+
+            parent.expand();
+            foreach(StateSpaceNode child in parent.children)
+            {
+                GetNextStateCosts(depth - 1, child, statesCosts);
+                statesCosts.Add(child, GetCost(child));
+            }
+        }
+
         private int GetCost(StateSpaceNode child)
         {
             ResetNodes();

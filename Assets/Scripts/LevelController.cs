@@ -310,12 +310,7 @@ public class LevelController : MonoBehaviour
     public void GetPlan()
     {
         HSPlanner hsp = new HSPlanner(_ssProblem);
-        Plan plan = hsp.findNextSolution();
-
-        using (StreamWriter writer = new StreamWriter("Sokoban_problem.txt", true))
-            foreach (Step step in plan)
-                writer.WriteLine(step);
-
-        Debug.Log(plan);
+        foreach (KeyValuePair<StateSpaceNode, int> entry in hsp.GetNextStatesCosts(1))
+            Debug.Log(entry.Key + " costs " + entry.Value);
     }
 }
