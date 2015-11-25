@@ -39,13 +39,23 @@ namespace HeuristicSearchPlanner
             while (queue.Count > 0)
             {
                 StateSpaceNode node = queue.Dequeue();
-                node.expand();
                 if (problem.goal.IsTrue(node.state))
                     return node.plan;
+                node.expand();
                 foreach (StateSpaceNode child in node.children)
-                    queue.Enqueue(child, GetCost(child));
+                    //if (!Prune(child)) // Use Novelty? Uncomment to use
+                        queue.Enqueue(child, GetCost(child));
             }
             return null;
+        }
+
+        private bool Prune(StateSpaceNode node)
+        {
+            int maxWidth = 2;
+            for (int i = 1; i <= maxWidth; i++)
+                if (Novelty.HasNovelty((StateSpaceProblem)problem, node, i, _allLiterals))
+                    return false;
+            return true;
         }
 
         public Dictionary<StateSpaceNode, int> GetNextStatesCosts(int depth = 1)

@@ -26,6 +26,7 @@ public class LevelController : MonoBehaviour
     public GameObject MoveablePrefab;
     public GameObject TargetPrefab;
     public GameObject PlayerPrefab;
+    public GameObject PlayerGhostPrefab;
     public GameObject CompleteMenuPrefab;
     public GameObject FailMenuPrefab;
     public GameObject PauseMenuPrefab;
@@ -310,7 +311,51 @@ public class LevelController : MonoBehaviour
     public void GetPlan()
     {
         HSPlanner hsp = new HSPlanner(_ssProblem);
-        foreach (KeyValuePair<StateSpaceNode, int> entry in hsp.GetNextStatesCosts(1))
-            Debug.Log(entry.Key + " costs " + entry.Value);
+        foreach (KeyValuePair<StateSpaceNode, int> entry in hsp.GetNextStatesCosts(2))
+        {
+            Debug.Log(string.Format("Player Position @ {0} at depth {1} costs {2}",GetPlayerPosition(entry.Key.state),entry.Key.plan.size(),entry.Value));
+            Debug.Log(string.Format("Box Position @ {0} at depth {1} costs {2}", GetBoxPositions(entry.Key.state)[0], entry.Key.plan.size(), entry.Value));
+            Vector2 playerPosition = GetPlayerPosition(entry.Key.state);
+            int x = Convert.ToInt32(playerPosition.x);
+            int y = Convert.ToInt32(playerPosition.y);
+            if (grid.grid[x,y].GetComponent<CellManager>().gameObjectOnMe == null)
+            {
+                GameObject playerGhost = Instantiate(PlayerGhostPrefab);
+                playerGhost.GetComponent<Cell>().SetCell(grid.grid[x, y]);
+                playerGhost.transform.FindChild("Cost").GetComponent<TextMesh>().text = entry.Value.ToString();
+                grid.grid[x, y].GetComponent<CellManager>().gameObjectOnMe = null;
+            }
+        }
+    }
+
+    private List<Vector2> GetBoxPositions(State state)
+    {
+        List<Vector2> boxPositions = new List<Vector2>();
+        foreach (Literal literal in state.Literals)
+            if (literal is Predication)
+            {
+                Predication predication = (Predication)literal;
+                if (predication.predicate == "has_box")
+                {
+                    string[] cell = predication.terms.get(0).name.Split('_');
+                    boxPositions.Add(new Vector2(Convert.ToSingle(cell[1]), Convert.ToSingle(cell[2])));
+                }
+            }
+        return boxPositions;
+    }
+
+    private Vector2 GetPlayerPosition(State state)
+    {
+        foreach (Literal literal in state.Literals)
+            if (literal is Predication)
+            {
+                Predication predication = (Predication)literal;
+                if (predication.predicate == "has_player")
+                {
+                    string[] cell = predication.terms.get(0).name.Split('_');
+                    return new Vector2(Convert.ToSingle(cell[1]), Convert.ToSingle(cell[2]));
+                }
+            }
+        return new Vector2(-1, -1);
     }
 }
