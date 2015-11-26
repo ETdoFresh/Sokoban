@@ -12,10 +12,11 @@ using System.Collections.Generic;
 public class LevelController : MonoBehaviour
 {
     static public int MAX_LEVEL = 2;
-    static public int CURRENT_LEVEL = 1;
+    static public int CURRENT_LEVEL = 2;
     static public event Action OnMove = delegate { };
     static public TextAsset domain;
     static public int num_times_enables = 0;
+    static readonly Vector2 NullVector2 = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
 
     public int numberTimesEnables = 0;
     public MainGrid grid;
@@ -27,6 +28,7 @@ public class LevelController : MonoBehaviour
     public GameObject TargetPrefab;
     public GameObject PlayerPrefab;
     public GameObject PlayerGhostPrefab;
+    public GameObject BoxGhostPrefab;
     public GameObject CompleteMenuPrefab;
     public GameObject FailMenuPrefab;
     public GameObject PauseMenuPrefab;
@@ -310,11 +312,10 @@ public class LevelController : MonoBehaviour
 
     public void GetPlan()
     {
+        GetPDDL();
         HSPlanner hsp = new HSPlanner(_ssProblem);
-        foreach (KeyValuePair<StateSpaceNode, int> entry in hsp.GetNextStatesCosts(2))
+        foreach (KeyValuePair<StateSpaceNode, int> entry in hsp.GetNextStatesCosts(1))
         {
-            Debug.Log(string.Format("Player Position @ {0} at depth {1} costs {2}",GetPlayerPosition(entry.Key.state),entry.Key.plan.size(),entry.Value));
-            Debug.Log(string.Format("Box Position @ {0} at depth {1} costs {2}", GetBoxPositions(entry.Key.state)[0], entry.Key.plan.size(), entry.Value));
             Vector2 playerPosition = GetPlayerPosition(entry.Key.state);
             int x = Convert.ToInt32(playerPosition.x);
             int y = Convert.ToInt32(playerPosition.y);
@@ -325,12 +326,31 @@ public class LevelController : MonoBehaviour
                 playerGhost.transform.FindChild("Cost").GetComponent<TextMesh>().text = entry.Value.ToString();
                 grid.grid[x, y].GetComponent<CellManager>().gameObjectOnMe = null;
             }
+
+            foreach (Vector2 boxPosition in GetBoxPositions(entry.Key))
+            {
+                x = Convert.ToInt32(boxPosition.x);
+                y = Convert.ToInt32(boxPosition.y);
+                if (grid.grid[x, y].GetComponent<CellManager>().gameObjectOnMe == null)
+                {
+                    GameObject boxGhost = Instantiate(BoxGhostPrefab);
+                    boxGhost.GetComponent<Cell>().SetCell(grid.grid[x, y]);
+                    string cost = entry.Value == int.MaxValue ? "∞" : entry.Value.ToString();
+                    boxGhost.transform.FindChild("Cost").GetComponent<TextMesh>().text = cost;
+                    grid.grid[x, y].GetComponent<CellManager>().gameObjectOnMe = null;
+                }
+            }
         }
     }
 
-    private List<Vector2> GetBoxPositions(State state)
+    private List<Vector2> GetBoxPositions(StateSpaceNode node)
     {
         List<Vector2> boxPositions = new List<Vector2>();
+        foreach (Step step in node.plan)
+            if (!step.name.Contains("pushbox"))
+                return boxPositions;
+
+        State state = node.state;
         foreach (Literal literal in state.Literals)
             if (literal is Predication)
             {
@@ -356,6 +376,6 @@ public class LevelController : MonoBehaviour
                     return new Vector2(Convert.ToSingle(cell[1]), Convert.ToSingle(cell[2]));
                 }
             }
-        return new Vector2(-1, -1);
+        return NullVector2;
     }
 }

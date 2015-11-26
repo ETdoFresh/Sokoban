@@ -286,6 +286,10 @@ Prefab:
       propertyPath: PlayerGhostPrefab
       value: 
       objectReference: {fileID: 193184, guid: 72ca6affa764dae4aaf400a6543ef394, type: 2}
+    - target: {fileID: 11417928, guid: cfbcf0e7846b9d44189782f3693d3698, type: 2}
+      propertyPath: BoxGhostPrefab
+      value: 
+      objectReference: {fileID: 113372, guid: c71650b494bf3b8468b12fa760cc7cc6, type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cfbcf0e7846b9d44189782f3693d3698, type: 2}
   m_IsPrefabParent: 0

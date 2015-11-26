@@ -60,14 +60,24 @@ S02E10 - Sokoban - Create a destrudible box!
 - Create destructible boxes... ie fail condition (x moves and box go boom)
 - Create a timer (another fail condition perhaps?)
 
+S02E35 - Sokoban - Ghost Boxes
+- Ghost boxes are now created
+- Only calculating cost for one move
+
 
   Later...
+  - Delete Ghost boxes on Move
+  - Press "Space" for calculating movements
+  - Show Loading and Computing Messages
+
   - Finish Cinematics (After last level, ie THE END)
   - Come up with a cinema script (like text file explaining camera, sounds, effects, etc)
   - Level changing dynamics, such as additional boxes and targets
   - Create animation as player moves from cell to cell
   - Add some push sounds and basic music
   - Track scores, track progress, track level completion, etc.
+
+
 
 -----------------------------------------------------------------------------------------
 Bugs
