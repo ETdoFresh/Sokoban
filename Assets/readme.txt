@@ -64,6 +64,10 @@ S02E35 - Sokoban - Ghost Boxes
 - Ghost boxes are now created
 - Only calculating cost for one move
 
+S02E36 - Sokoban - Threads
+- Create Thread Engine for Unity
+- Problem Finding runs on Different Thread (Asynchronously)
+- Plan Finding runs on Different Thread (Asynchronously)
 
   Later...
   - Delete Ghost boxes on Move

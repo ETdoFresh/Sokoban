@@ -8,6 +8,7 @@ using StateSpaceSearchProject;
 using HeuristicSearchPlanner;
 using Planning.Logic;
 using System.Collections.Generic;
+using UnityThread;
 
 public class LevelController : MonoBehaviour
 {
@@ -40,6 +41,7 @@ public class LevelController : MonoBehaviour
     private bool _isComplete;
     private bool _isPause;
     private StateSpaceProblem _ssProblem;
+    private HSPThread _hThread;
 
     enum Direction { UP, DOWN, LEFT, RIGHT }
 
@@ -154,6 +156,7 @@ public class LevelController : MonoBehaviour
         {
             PlayCinematic(MiddleCinematicPrefab);
         }
+        CheckForHThread();
     }
 
     private void PauseGame()
@@ -305,21 +308,56 @@ public class LevelController : MonoBehaviour
         using (StreamWriter writer = new StreamWriter("Sokoban_problem.txt"))
             writer.Write(pddl);
 
-        Problem problem = PDDLReader.GetProblem(domain.text, pddl);
-        _ssProblem = new StateSpaceProblem(problem);
-        Debug.Log(_ssProblem);
+        ThreadJob thread = new ProblemThread(pddl, level, domain.text);
+        thread.Start();
+        thread.OnThreadComplete += GetProblem;
+        thread.OnThreadAbort += Abort;
+    }
+
+    private void GetProblem(ThreadJob thread)
+    {
+        if (thread is ProblemThread)
+        {
+            ProblemThread pThread = (ProblemThread)thread;
+            _ssProblem = pThread.GetStateSpaceProblem();
+            Debug.Log(_ssProblem);
+        }
+        Debug.Log("Thread has been completed.");
+        thread.ResetEventSubscriptions();
+    }
+
+    private void Abort(ThreadJob thread)
+    {
+        Debug.Log("Thread has been aborted.");
+        thread.ResetEventSubscriptions();
     }
 
     public void GetPlan()
     {
-        GetPDDL();
-        HSPlanner hsp = new HSPlanner(_ssProblem);
-        foreach (KeyValuePair<StateSpaceNode, int> entry in hsp.GetNextStatesCosts(1))
+        ThreadJob thread = new HSPThread(_ssProblem);
+        thread.Start();
+        thread.OnThreadComplete += GetNextStates;
+        thread.OnThreadAbort += Abort;
+    }
+
+    private void GetNextStates(ThreadJob thread)
+    {
+        _hThread = (HSPThread)thread;
+        thread.ResetEventSubscriptions();
+    }
+
+    private void CheckForHThread()
+    {
+        if (_hThread == null)
+            return;
+
+        Debug.Log("HSPThread returned results.");
+        foreach (KeyValuePair<StateSpaceNode, int> entry in _hThread.GetResult())
         {
             Vector2 playerPosition = GetPlayerPosition(entry.Key.state);
             int x = Convert.ToInt32(playerPosition.x);
             int y = Convert.ToInt32(playerPosition.y);
-            if (grid.grid[x,y].GetComponent<CellManager>().gameObjectOnMe == null)
+            if (grid.grid[x, y].GetComponent<CellManager>().gameObjectOnMe == null)
             {
                 GameObject playerGhost = Instantiate(PlayerGhostPrefab);
                 playerGhost.GetComponent<Cell>().SetCell(grid.grid[x, y]);
@@ -341,6 +379,7 @@ public class LevelController : MonoBehaviour
                 }
             }
         }
+        _hThread = null;
     }
 
     private List<Vector2> GetBoxPositions(StateSpaceNode node)
