@@ -19,7 +19,7 @@ public class HSPThread : ThreadJob
 
     protected override void ThreadFunction()
     {
-        _result = _hsp.GetNextStatesCosts(2);
+        _result = _hsp.GetNextStatesCosts(1);
         base.ThreadFunction();
     }
 

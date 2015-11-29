@@ -12,7 +12,7 @@ using UnityThread;
 
 public class LevelController : MonoBehaviour
 {
-    static public int MAX_LEVEL = 2;
+    static public int MAX_LEVEL = 4;
     static public int CURRENT_LEVEL = 2;
     static public event Action OnMove = delegate { };
     static public TextAsset domain;
@@ -44,6 +44,7 @@ public class LevelController : MonoBehaviour
     private StateSpaceProblem _ssProblem;
     private HSPThread _hThread;
     private bool _isLookingAtPaper = false;
+    private GameObject ghosts;
 
     enum Direction { UP, DOWN, LEFT, RIGHT }
 
@@ -64,7 +65,8 @@ public class LevelController : MonoBehaviour
 
     void CreateLevel()
     {
-        level = Level.Create(LevelReader.ReadLevel("Assets/Level/level" + CURRENT_LEVEL + ".txt"));
+        char[,] data = LevelReader.ReadLevel(CURRENT_LEVEL);
+        level = Level.Create(data);
         grid = GameObjectHelper.FindChildByName(gameObject, "Ground").GetComponent<MainGrid>();
         grid.transform.localScale = new Vector3(level.width, level.height, level.height);
         grid.SetGrid(level.width, level.height);
@@ -79,7 +81,9 @@ public class LevelController : MonoBehaviour
 
         Status.SetText("Playing Cinematic...");
         PauseGame();
-        Instantiate(CinematicPrefab).name = CinematicPrefab.name;
+        GameObject cinematic = Instantiate(CinematicPrefab);
+        cinematic.name = CinematicPrefab.name;
+        cinematic.transform.SetParent(transform);
 
         if (resume)
             Cinematic.OnCinematicFinish += ResumeGame;
@@ -190,6 +194,8 @@ public class LevelController : MonoBehaviour
 
     void Move(Cell cell, Direction direction)
     {
+        DeleteGhosts();
+
         GameObject destinationCell = null;
         int x = cell.x;
         int y = cell.y;
@@ -218,6 +224,12 @@ public class LevelController : MonoBehaviour
 
         _boxesPushed = 0;
         CheckTargets();
+    }
+
+    private void DeleteGhosts()
+    {
+        if (ghosts != null)
+            Destroy(ghosts);
     }
 
     bool isValidMove(GameObject cell, Direction direction)
@@ -333,6 +345,7 @@ public class LevelController : MonoBehaviour
     public void GetPlan()
     {
         _isLookingAtPaper = true;
+        DeleteGhosts();
         ShowDomainPDDL();
 
         LevelState ls = new LevelState(gameObject, level);
@@ -346,9 +359,13 @@ public class LevelController : MonoBehaviour
 
     private void ShowDomainPDDL()
     {
+        PauseGame();
+
         GameObject paper = Instantiate(PaperPrefab);
         paper.transform.localPosition += new Vector3(0, 3, 0);
         paper.transform.FindChild("Paper Object").localEulerAngles -= new Vector3(90, 0, 0);
+        paper.transform.FindChild("Paper Object").localScale = Vector3.one * 5;
+        paper.transform.FindChild("Paper Object").localPosition += new Vector3(0, 0, -10);
         paper.GetComponentInChildren<PaperResize>().SetText(domain.text);
         PaperController.OnClickDone += ShowProblemPDDL;
         Status.SetText("Showing Domain PDDL...");
@@ -363,6 +380,8 @@ public class LevelController : MonoBehaviour
         GameObject paper = Instantiate(PaperPrefab);
         paper.transform.localPosition += new Vector3(0, 3, 0);
         paper.transform.FindChild("Paper Object").localEulerAngles -= new Vector3(90, 0, 0);
+        paper.transform.FindChild("Paper Object").localScale = Vector3.one * 5;
+        paper.transform.FindChild("Paper Object").localPosition += new Vector3(0, 0, -10);
         paper.GetComponentInChildren<PaperResize>().SetText(pddl);
         PaperController.OnClickDone += FinishWithPaper;
         Status.SetText("Showing Problem PDDL...");
@@ -370,6 +389,7 @@ public class LevelController : MonoBehaviour
 
     private void FinishWithPaper()
     {
+        PaperController.OnClickDone -= FinishWithPaper;
         _isLookingAtPaper = false;
     }
 
@@ -385,7 +405,10 @@ public class LevelController : MonoBehaviour
         if (_hThread == null || _isLookingAtPaper)
             return;
 
-        Debug.Log("HSPThread returned results.");
+        if (_isPause) ResumeGame();
+        ghosts = new GameObject();
+        ghosts.name = "Ghosts";
+        ghosts.transform.SetParent(transform);
         foreach (KeyValuePair<StateSpaceNode, int> entry in _hThread.GetResult())
         {
             Vector2 playerPosition = GetPlayerPosition(entry.Key.state);
@@ -394,8 +417,10 @@ public class LevelController : MonoBehaviour
             if (grid.grid[x, y].GetComponent<CellManager>().gameObjectOnMe == null)
             {
                 GameObject playerGhost = Instantiate(PlayerGhostPrefab);
+                playerGhost.transform.SetParent(ghosts.transform);
                 playerGhost.GetComponent<Cell>().SetCell(grid.grid[x, y]);
-                playerGhost.transform.FindChild("Cost").GetComponent<TextMesh>().text = entry.Value.ToString();
+                string cost = entry.Value == int.MaxValue ? "∞" : entry.Value.ToString();
+                playerGhost.transform.FindChild("Cost").GetComponent<TextMesh>().text = cost;
                 grid.grid[x, y].GetComponent<CellManager>().gameObjectOnMe = null;
             }
 
@@ -406,6 +431,7 @@ public class LevelController : MonoBehaviour
                 if (grid.grid[x, y].GetComponent<CellManager>().gameObjectOnMe == null)
                 {
                     GameObject boxGhost = Instantiate(BoxGhostPrefab);
+                    boxGhost.transform.SetParent(ghosts.transform);
                     boxGhost.GetComponent<Cell>().SetCell(grid.grid[x, y]);
                     string cost = entry.Value == int.MaxValue ? "∞" : entry.Value.ToString();
                     boxGhost.transform.FindChild("Cost").GetComponent<TextMesh>().text = cost;

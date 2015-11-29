@@ -69,11 +69,11 @@ public class LevelState
         for (int x = 0; x < _level.width; x++)
             for (int y = 0; y < _level.height; y++)
             {
-                if (x - 2 > 0)
+                if (x - 2 >= 0)
                     pddl += string.Format("      (adjacent_2 Cell_{0}_{2} Cell_{1}_{2})\r\n", x, x - 2, y);
                 if (x + 2 < _level.width)
                     pddl += string.Format("      (adjacent_2 Cell_{0}_{2} Cell_{1}_{2})\r\n", x, x + 2, y);
-                if (y - 2 > 0)
+                if (y - 2 >= 0)
                     pddl += string.Format("      (adjacent_2 Cell_{0}_{1} Cell_{0}_{2})\r\n", x, y, y - 2);
                 if (y + 2 < _level.height)
                     pddl += string.Format("      (adjacent_2 Cell_{0}_{1} Cell_{0}_{2})\r\n", x, y, y + 2);
