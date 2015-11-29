@@ -9,18 +9,26 @@ public class PaperResize : MonoBehaviour
     TextMesh textMesh;
     BoxCollider boxCollider;
 
+    string toBePlaced;
+
     // Use this for initialization
     void Start()
     {
         code = transform.FindChild("Code");
         bottom = transform.FindChild("Paper").FindChild("BottomPaper");
-        textMesh = code.GetComponent<TextMesh>();
+        textMesh = GetComponentInChildren<TextMesh>();
         boxCollider = GetComponent<BoxCollider>();
-        SetText(textMesh.text);
+
+        toBePlaced = toBePlaced == null ? textMesh.text : toBePlaced;
+        SetText(toBePlaced);
     }
     
     public void SetText(string text)
     {
+        toBePlaced = text;
+        if (textMesh == null)
+            return;
+
         textMesh.text = text;
         int newLines = 0;
         foreach (char c in textMesh.text) if (c == '\n') newLines++;

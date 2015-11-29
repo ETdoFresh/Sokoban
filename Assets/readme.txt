@@ -75,6 +75,10 @@ S02E39 - Sokoban - Thread Status Bar
 - Created Drop Shadows
 - Created Status Bar
 
+S02E40 - Sokoban - More Thread Status Bar
+- Added fixes for Status Bar
+- Set a bunch of Status Bar Update Points in Code
+
   Later...
   - Delete Ghost boxes on Move
   - Press "Space" for calculating movements

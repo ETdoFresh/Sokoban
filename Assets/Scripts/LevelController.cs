@@ -30,6 +30,7 @@ public class LevelController : MonoBehaviour
     public GameObject PlayerPrefab;
     public GameObject PlayerGhostPrefab;
     public GameObject BoxGhostPrefab;
+    public GameObject PaperPrefab;
     public GameObject CompleteMenuPrefab;
     public GameObject FailMenuPrefab;
     public GameObject PauseMenuPrefab;
@@ -42,6 +43,7 @@ public class LevelController : MonoBehaviour
     private bool _isPause;
     private StateSpaceProblem _ssProblem;
     private HSPThread _hThread;
+    private bool _isLookingAtPaper = false;
 
     enum Direction { UP, DOWN, LEFT, RIGHT }
 
@@ -75,6 +77,7 @@ public class LevelController : MonoBehaviour
         if (CinematicPrefab == null)
             return;
 
+        Status.SetText("Playing Cinematic...");
         PauseGame();
         Instantiate(CinematicPrefab).name = CinematicPrefab.name;
 
@@ -135,6 +138,7 @@ public class LevelController : MonoBehaviour
         if (domain == null)
             domain = Resources.Load<TextAsset>("Sokoban_domain");
 
+        Status.SetText("Showing Level " + CURRENT_LEVEL + "...");
         PlayCinematic(StartingCinematicPrefab);
     }
 
@@ -170,6 +174,7 @@ public class LevelController : MonoBehaviour
 
     private void ResumeGame()
     {
+        Status.SetText("Game Started/Resumed...");
         Cinematic.OnCinematicFinish -= ResumeGame;
         _isPause = false;
         InputController.OnUp += MoveUp;
@@ -301,29 +306,22 @@ public class LevelController : MonoBehaviour
         Destroy(gameObject);
     }
 
-    public void GetPDDL()
+    private void AssignProblem(ThreadJob thread)
     {
-        LevelState ls = new LevelState(gameObject, level);
-        string pddl = ls.ToPDDL();
-        using (StreamWriter writer = new StreamWriter("Sokoban_problem.txt"))
-            writer.Write(pddl);
-
-        ThreadJob thread = new ProblemThread(pddl, level, domain.text);
-        thread.Start();
-        thread.OnThreadComplete += GetProblem;
-        thread.OnThreadAbort += Abort;
-    }
-
-    private void GetProblem(ThreadJob thread)
-    {
+        Debug.Log("Thread Complete - Getting Problem...");
         if (thread is ProblemThread)
         {
             ProblemThread pThread = (ProblemThread)thread;
             _ssProblem = pThread.GetStateSpaceProblem();
             Debug.Log(_ssProblem);
         }
-        Debug.Log("Thread has been completed.");
         thread.ResetEventSubscriptions();
+
+        Debug.Log("Thread Started - Getting Next States...");
+        thread = new HSPThread(_ssProblem);
+        thread.Start();
+        thread.OnThreadComplete += GetNextStates;
+        thread.OnThreadAbort += Abort;
     }
 
     private void Abort(ThreadJob thread)
@@ -334,21 +332,57 @@ public class LevelController : MonoBehaviour
 
     public void GetPlan()
     {
-        ThreadJob thread = new HSPThread(_ssProblem);
+        _isLookingAtPaper = true;
+        ShowDomainPDDL();
+
+        LevelState ls = new LevelState(gameObject, level);
+        string pddl = ls.ToPDDL();
+        Debug.Log("Thread Started - Getting Problem...");
+        ThreadJob thread = new ProblemThread(pddl, level, domain.text);
         thread.Start();
-        thread.OnThreadComplete += GetNextStates;
+        thread.OnThreadComplete += AssignProblem;
         thread.OnThreadAbort += Abort;
+    }
+
+    private void ShowDomainPDDL()
+    {
+        GameObject paper = Instantiate(PaperPrefab);
+        paper.transform.localPosition += new Vector3(0, 3, 0);
+        paper.transform.FindChild("Paper Object").localEulerAngles -= new Vector3(90, 0, 0);
+        paper.GetComponentInChildren<PaperResize>().SetText(domain.text);
+        PaperController.OnClickDone += ShowProblemPDDL;
+        Status.SetText("Showing Domain PDDL...");
+    }
+
+    private void ShowProblemPDDL()
+    {
+        PaperController.OnClickDone -= ShowProblemPDDL;
+        LevelState ls = new LevelState(gameObject, level);
+        string pddl = ls.ToPDDL();
+
+        GameObject paper = Instantiate(PaperPrefab);
+        paper.transform.localPosition += new Vector3(0, 3, 0);
+        paper.transform.FindChild("Paper Object").localEulerAngles -= new Vector3(90, 0, 0);
+        paper.GetComponentInChildren<PaperResize>().SetText(pddl);
+        PaperController.OnClickDone += FinishWithPaper;
+        Status.SetText("Showing Problem PDDL...");
+    }
+
+    private void FinishWithPaper()
+    {
+        _isLookingAtPaper = false;
     }
 
     private void GetNextStates(ThreadJob thread)
     {
+        Debug.Log("Thread Complete - Getting Next States...");
         _hThread = (HSPThread)thread;
         thread.ResetEventSubscriptions();
     }
 
     private void CheckForHThread()
     {
-        if (_hThread == null)
+        if (_hThread == null || _isLookingAtPaper)
             return;
 
         Debug.Log("HSPThread returned results.");

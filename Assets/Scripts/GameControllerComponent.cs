@@ -37,22 +37,26 @@ public class GameControllerComponent : MonoBehaviour
 
     void StartLogo()
     {
-        Instantiate(logoPrefab).name = logoPrefab.name;        
+        Instantiate(logoPrefab).name = logoPrefab.name;
+        Status.SetText("Showing Logo...");
     }
 
     void StartMenu()
     {
         Instantiate(menuPrefab).name = menuPrefab.name;
+        Status.SetText("Showing Menu...");
     }
 
     void StartLevelSelect()
     {
         Instantiate(levelSelectPrefab).name = levelSelectPrefab.name;
+        Status.SetText("Showing Level Select...");
     }
 
     void StartGame()
     {
         Instantiate(levelPrefab).name = levelPrefab.name;
+        Status.SetText("Showing Level...");
     }
 
     void StartGameNextLevel()

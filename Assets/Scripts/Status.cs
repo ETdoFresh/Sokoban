@@ -18,6 +18,7 @@ public class Status : MonoBehaviour
 
     public static void SetText(string text)
     {
-        _text.text = text;
+        if (_text != null)
+            _text.text = text;
     }
 }
