@@ -69,6 +69,12 @@ S02E36 - Sokoban - Threads
 - Problem Finding runs on Different Thread (Asynchronously)
 - Plan Finding runs on Different Thread (Asynchronously)
 
+S02E38 - Sokoban - Inertia Scrolling and Zooming
+
+S02E39 - Sokoban - Thread Status Bar
+- Created Drop Shadows
+- Created Status Bar
+
   Later...
   - Delete Ghost boxes on Move
   - Press "Space" for calculating movements

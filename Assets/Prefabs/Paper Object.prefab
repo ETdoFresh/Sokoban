@@ -75,9 +75,10 @@ GameObject:
   m_Component:
   - 4: {fileID: 425260}
   - 114: {fileID: 11464328}
-  - 114: {fileID: 11444718}
+  - 65: {fileID: 6579456}
+  - 114: {fileID: 11451984}
   m_Layer: 0
-  m_Name: PaperCanvas
+  m_Name: Paper Object
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -239,6 +240,18 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 124838}
   m_Mesh: {fileID: 4300006, guid: c79d451b01645ef4495c36d1035684b3, type: 3}
+--- !u!65 &6579456
+BoxCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 170032}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 2.1500001, y: 2.79999995, z: .0500000007}
+  m_Center: {x: 0, y: 1.39999998, z: 0}
 --- !u!102 &10270006
 TextMesh:
   serializedVersion: 3
@@ -298,7 +311,7 @@ TextMesh:
   m_Color:
     serializedVersion: 2
     rgba: 4278190080
---- !u!114 &11444718
+--- !u!114 &11451984
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -306,7 +319,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 170032}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7dbb191fe17bc7a49be539ee564af883, type: 3}
+  m_Script: {fileID: 11500000, guid: 32887f5745579374b994951a21f1ba15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &11464328

@@ -64,8 +64,9 @@ public class PaperInput2 : MonoBehaviour
 
         Vector3 euler = transform.localEulerAngles;
         euler.y = Mathf.Clamp(euler.y, 160, 200);
-        euler.y = Mathf.Clamp(euler.y, 180 - Math.Abs(Input.mousePosition.x - startMouse.x) / transform.localScale.x,
-            180 + Math.Abs(Input.mousePosition.x - startMouse.x) / transform.localScale.x);
+        euler.y = Mathf.Clamp(euler.y,
+            180 - Math.Abs(Input.mousePosition.x - startMouse.x) / transform.localScale.x / 15,
+            180 + Math.Abs(Input.mousePosition.x - startMouse.x) / transform.localScale.x / 15);
         transform.localEulerAngles = euler;
     }
 
