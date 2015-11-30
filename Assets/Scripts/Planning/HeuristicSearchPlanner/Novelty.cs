@@ -11,20 +11,20 @@ namespace HeuristicSearchPlanner
 {
     public class Novelty
     {
-        public static bool HasNovelty(StateSpaceProblem problem, StateSpaceNode node, int size, List<Literal> literals)
+        public static bool HasNovelty(StateSpaceProblem problem, StateSpaceNode node, int size, ImmutableArray<Literal> literals)
         {
             return HasNovelty(literals, node, new Literal[size], 0, 0);
         }
 
-        private static bool HasNovelty(List<Literal> literals, StateSpaceNode node, Literal[] conjunction, int index, int start)
+        private static bool HasNovelty(ImmutableArray<Literal> literals, StateSpaceNode node, Literal[] conjunction, int index, int start)
         {
             if (index == conjunction.Length)
                 return !Ever(node.parent, conjunction);
             else
             {
-                for (int i = start; i < literals.Count; i++)
+                for (int i = start; i < literals.length; i++)
                 {
-                    Literal literal = literals[i];
+                    Literal literal = literals.get(i);
                     if (node.state.isTrue(literal))
                     {
                         conjunction[index] = literal;

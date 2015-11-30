@@ -107,7 +107,10 @@ namespace StateSpaceSearchProject
         private static void collectLiterals(Expression expression, ICollection<Literal> literals)
         {
             if (expression is Literal)
-                literals.Add((Literal)expression);
+            {
+                if (!literals.Contains((Literal)expression))
+                    literals.Add((Literal)expression);
+            }
             else if (expression is Conjunction)
                 foreach (Expression argument in ((Conjunction)expression).arguments)
                     collectLiterals(argument, literals);

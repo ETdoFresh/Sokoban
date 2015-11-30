@@ -13,7 +13,7 @@ using UnityThread;
 public class LevelController : MonoBehaviour
 {
     static public int MAX_LEVEL = 4;
-    static public int CURRENT_LEVEL = 2;
+    static public int CURRENT_LEVEL = 1;
     static public event Action OnMove = delegate { };
     static public TextAsset domain;
     static public int num_times_enables = 0;
@@ -34,6 +34,7 @@ public class LevelController : MonoBehaviour
     public GameObject CompleteMenuPrefab;
     public GameObject FailMenuPrefab;
     public GameObject PauseMenuPrefab;
+    public GameObject PlanMenuPrefab;
     public GameObject StartingCinematicPrefab;
     public GameObject MiddleCinematicPrefab;
     public GameObject EndingCinematicPrefab;
@@ -42,9 +43,11 @@ public class LevelController : MonoBehaviour
     private bool _isComplete;
     private bool _isPause;
     private StateSpaceProblem _ssProblem;
-    private HSPThread _hThread;
+    private PlannerThread _hThread;
     private bool _isLookingAtPaper = false;
     private GameObject ghosts;
+    private string _plannerType = null;
+    private bool _useNovelty;
 
     enum Direction { UP, DOWN, LEFT, RIGHT }
 
@@ -178,7 +181,6 @@ public class LevelController : MonoBehaviour
 
     private void ResumeGame()
     {
-        Status.SetText("Game Started/Resumed...");
         Cinematic.OnCinematicFinish -= ResumeGame;
         _isPause = false;
         InputController.OnUp += MoveUp;
@@ -318,48 +320,39 @@ public class LevelController : MonoBehaviour
         Destroy(gameObject);
     }
 
-    private void AssignProblem(ThreadJob thread)
-    {
-        Debug.Log("Thread Complete - Getting Problem...");
-        if (thread is ProblemThread)
-        {
-            ProblemThread pThread = (ProblemThread)thread;
-            _ssProblem = pThread.GetStateSpaceProblem();
-            Debug.Log(_ssProblem);
-        }
-        thread.ResetEventSubscriptions();
-
-        Debug.Log("Thread Started - Getting Next States...");
-        thread = new HSPThread(_ssProblem);
-        thread.Start();
-        thread.OnThreadComplete += GetNextStates;
-        thread.OnThreadAbort += Abort;
-    }
-
-    private void Abort(ThreadJob thread)
-    {
-        Debug.Log("Thread has been aborted.");
-        thread.ResetEventSubscriptions();
-    }
-
-    public void GetPlan()
+    public void ClickPlan()
     {
         _isLookingAtPaper = true;
+        _ssProblem = null;
+        _plannerType = null;
         DeleteGhosts();
-        ShowDomainPDDL();
 
+        GameObject planMenu = Instantiate(PlanMenuPrefab);
+        planMenu.transform.SetParent(transform);
+        PlanMenuController.OnClickCompute += ShowDomainPDDL;
+        PlanMenuController.OnClickCancel += FinishWithPaper;
+
+        GetProblem();
+    }
+
+    private void GetProblem()
+    {
         LevelState ls = new LevelState(gameObject, level);
         string pddl = ls.ToPDDL();
         Debug.Log("Thread Started - Getting Problem...");
         ThreadJob thread = new ProblemThread(pddl, level, domain.text);
         thread.Start();
-        thread.OnThreadComplete += AssignProblem;
+        thread.OnThreadComplete += ProblemThreadCallback;
         thread.OnThreadAbort += Abort;
     }
 
-    private void ShowDomainPDDL()
+    private void ShowDomainPDDL(PlanMenuController planMenu)
     {
+        PlanMenuController.OnClickCompute -= ShowDomainPDDL;
         PauseGame();
+
+        _plannerType = planMenu.GetPlanner();
+        _useNovelty = planMenu.UseNovelty();
 
         GameObject paper = Instantiate(PaperPrefab);
         paper.transform.localPosition += new Vector3(0, 3, 0);
@@ -369,6 +362,9 @@ public class LevelController : MonoBehaviour
         paper.GetComponentInChildren<PaperResize>().SetText(domain.text);
         PaperController.OnClickDone += ShowProblemPDDL;
         Status.SetText("Showing Domain PDDL...");
+
+        if (IsReadyToSolve())
+            GetNextState();
     }
 
     private void ShowProblemPDDL()
@@ -390,13 +386,52 @@ public class LevelController : MonoBehaviour
     private void FinishWithPaper()
     {
         PaperController.OnClickDone -= FinishWithPaper;
+        PlanMenuController.OnClickCancel -= FinishWithPaper;
         _isLookingAtPaper = false;
+
+        if (_hThread == null)
+            Status.SetText("Still Computing...");
     }
 
-    private void GetNextStates(ThreadJob thread)
+    private void ProblemThreadCallback(ThreadJob thread)
+    {
+        Debug.Log("Thread Complete - Getting Problem...");
+        if (thread is ProblemThread)
+        {
+            ProblemThread pThread = (ProblemThread)thread;
+            _ssProblem = pThread.GetStateSpaceProblem();
+            Debug.Log(_ssProblem);
+        }
+        thread.ResetEventSubscriptions();
+
+        if (IsReadyToSolve())
+            GetNextState();
+    }
+
+    private bool IsReadyToSolve()
+    {
+        return _ssProblem != null && _plannerType != null;
+    }
+
+    private void GetNextState()
+    {
+        Debug.Log("Thread Started - Getting Next States...");
+        ThreadJob thread = new PlannerThread(_ssProblem, _plannerType, _useNovelty);
+        thread.Start();
+        thread.OnThreadComplete += PlannerCallback;
+        thread.OnThreadAbort += Abort;
+    }
+
+    private void Abort(ThreadJob thread)
+    {
+        Debug.Log("Thread has been aborted.");
+        thread.ResetEventSubscriptions();
+    }
+
+    private void PlannerCallback(ThreadJob thread)
     {
         Debug.Log("Thread Complete - Getting Next States...");
-        _hThread = (HSPThread)thread;
+        _hThread = (PlannerThread)thread;
         thread.ResetEventSubscriptions();
     }
 
@@ -439,6 +474,7 @@ public class LevelController : MonoBehaviour
                 }
             }
         }
+        Status.SetText("Next States Shown...");
         _hThread = null;
     }
 

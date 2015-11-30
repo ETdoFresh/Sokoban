@@ -19,7 +19,7 @@ public class InputController : MonoBehaviour
             if (Input.GetAxis("Horizontal") > 0)
                 OnRight();
         }
-        if (Input.GetButtonDown("Vertical"))
+        else if (Input.GetButtonDown("Vertical"))
         {
             if (Input.GetAxis("Vertical") < 0)
                 OnDown();

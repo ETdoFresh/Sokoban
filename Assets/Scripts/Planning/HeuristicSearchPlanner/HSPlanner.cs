@@ -9,21 +9,19 @@ using System.Text;
 
 namespace HeuristicSearchPlanner
 {
-    public class HSPlanner : StateSpaceSearch
+    public class HSPlanner : StateSpaceSearchET
     {
         protected readonly PriorityQueue<StateSpaceNode> queue;
         private ImmutableArray<Step> _allSteps;
-        private List<Literal> _allLiterals;
+        private ImmutableArray<Literal> _allLiterals;
         private Dictionary<Literal, HSPNode> _nodeLookup;
         private List<HSPNode> _goals;
 
         public HSPlanner(StateSpaceProblem problem)
             : base(problem)
         {
-            GetAllSteps();
-            FactGatherer factGatherer = new FactGatherer(problem);
-            _allLiterals = factGatherer.GetAllFacts();
-
+            _allSteps = problem.steps;
+            _allLiterals = problem.literals;
             CreateHSPNodes();
 
             _goals = new List<HSPNode>();
@@ -43,7 +41,7 @@ namespace HeuristicSearchPlanner
                     return node.plan;
                 node.expand();
                 foreach (StateSpaceNode child in node.children)
-                    //if (!Prune(child)) // Use Novelty? Uncomment to use
+                    //if (!Prune(child))
                         queue.Enqueue(child, GetCost(child));
             }
             return null;
@@ -51,34 +49,13 @@ namespace HeuristicSearchPlanner
 
         private bool Prune(StateSpaceNode node)
         {
-            int maxWidth = 2;
-            for (int i = 1; i <= maxWidth; i++)
-                if (Novelty.HasNovelty((StateSpaceProblem)problem, node, i, _allLiterals))
-                    return false;
+            if (Novelty.HasNovelty((StateSpaceProblem)problem, node, 2, _allLiterals))
+                return false;
+
             return true;
         }
 
-        public Dictionary<StateSpaceNode, int> GetNextStatesCosts(int depth = 1)
-        {
-            Dictionary<StateSpaceNode, int> statesCosts = new Dictionary<StateSpaceNode, int>();
-            GetNextStateCosts(depth, root, statesCosts);
-            return statesCosts;
-        }
-
-        private void GetNextStateCosts(int depth, StateSpaceNode parent, Dictionary<StateSpaceNode, int> statesCosts)
-        {
-            if (depth <= 0)
-                return;
-
-            parent.expand();
-            foreach(StateSpaceNode child in parent.children)
-            {
-                GetNextStateCosts(depth - 1, child, statesCosts);
-                statesCosts.Add(child, GetCost(child));
-            }
-        }
-
-        private int GetCost(StateSpaceNode child)
+        protected override int GetCost(StateSpaceNode child)
         {
             ResetNodes();
             var Nodes = _nodeLookup;
@@ -143,11 +120,6 @@ namespace HeuristicSearchPlanner
                     return true;
 
             return false;
-        }
-
-        private void GetAllSteps()
-        {
-            _allSteps = (problem as StateSpaceProblem).steps;
         }
 
         private List<Literal> GetImpliedLiterals(List<Literal> statedLiterals)
