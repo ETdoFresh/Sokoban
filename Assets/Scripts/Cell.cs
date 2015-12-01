@@ -8,15 +8,22 @@ public class Cell : MonoBehaviour
     public GameObject cell;
     public bool isSolid;
 
-    public void SetCell(GameObject cell)
+    public void SetCell(GameObject cell, bool overwriteCell)
     {
-        if (this.cell != null)
-            this.cell.GetComponent<CellManager>().gameObjectOnMe = null;
-
+        if (overwriteCell)
+        {
+            if (this.cell != null)
+                this.cell.GetComponent<CellManager>().gameObjectOnMe = null;
+            cell.GetComponent<CellManager>().gameObjectOnMe = gameObject;
+        }
         this.cell = cell;
-        cell.GetComponent<CellManager>().gameObjectOnMe = gameObject;
         x = cell.GetComponent<CellManager>()._x;
         y = cell.GetComponent<CellManager>()._y;
         transform.position = cell.transform.position;
+    }
+
+    public void SetCell(GameObject cell)
+    {
+        SetCell(cell, true);
     }
 }

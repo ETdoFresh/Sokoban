@@ -81,7 +81,7 @@ namespace Planning
             return new Conjunction(literals.ToArray()).Simplify();
         }
 
-        public string toString()
+        public override string ToString()
         {
             return toExpression().ToString();
         }

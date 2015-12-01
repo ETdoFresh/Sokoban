@@ -8,7 +8,7 @@ using UnityThread;
 
 public class PlanController : MonoBehaviour
 {
-    public enum PlanMenuState { Initial, Menu, Domain, Problem, Wait, Compute, Complete }
+    public enum PlanMenuState { Initial, Menu, Domain, Problem, Wait, Computing, Complete }
     public enum ThreadState { Initial, Running, Complete }
 
     public GameObject PlanMenuPrefab;
@@ -20,6 +20,7 @@ public class PlanController : MonoBehaviour
 
     private StateSpaceProblem _ssProblem;
     private PlannerThread _hThread;
+    private StateSpaceNode _previousNode;
     // Public for Unity Debug
     public string _plannerFunction = null;
     public string _plannerType = null;
@@ -108,7 +109,10 @@ public class PlanController : MonoBehaviour
                 planMenuState = PlanMenuState.Complete;
         }
         else
-            planMenuState = PlanMenuState.Compute;
+        {
+            planMenuState = PlanMenuState.Computing;
+            StartFindingSolution();
+        }
         Status.SetText(GetStatus());
 
         PaperController.OnClickDone -= FinishWithPaper;
@@ -153,6 +157,19 @@ public class PlanController : MonoBehaviour
         thread.Start();
         thread.OnThreadComplete += PlannerCallback;
         thread.OnThreadAbort += Abort;
+    }
+
+    // Probably just need to use GetNextState (and rename function while you're at it)
+    private void StartFindingSolution()
+    {
+        computeThreadState = ThreadState.Running;
+        Status.SetText(GetStatus());
+
+        ThreadJob thread = new PlannerThread(_ssProblem, _plannerFunction, _plannerType, _useNovelty);
+        thread.Start();
+        thread.OnThreadComplete += PlannerCallback;
+        thread.OnThreadAbort += Abort;
+        _hThread = (PlannerThread)thread;
     }
 
     private void Abort(ThreadJob thread)
@@ -207,5 +224,26 @@ public class PlanController : MonoBehaviour
     public void DeleteThread()
     {
         _hThread = null;
+    }
+
+    public bool GetPlannerStateChanged()
+    {
+        if (planMenuState != PlanMenuState.Computing)
+            return false;
+
+        if (_previousNode == _hThread.GetCurrentNode())
+            return false;
+
+        return true;
+    }
+
+    private void Update()
+    {
+        if (GetPlannerStateChanged())
+        {
+            _previousNode = _hThread.GetCurrentNode();
+            Debug.Log(_hThread.GetCurrentNode());
+            levelController.ConvertSSNodeToGhosts(_previousNode);
+        }
     }
 }

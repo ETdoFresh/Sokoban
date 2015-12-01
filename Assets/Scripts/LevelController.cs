@@ -13,7 +13,7 @@ using UnityThread;
 public class LevelController : MonoBehaviour
 {
     static public int MAX_LEVEL = 4;
-    static public int CURRENT_LEVEL = 2;
+    static public int CURRENT_LEVEL = 1;
     static public event Action OnMove = delegate { };
     static public TextAsset domain;
     static public int num_times_enables = 0;
@@ -42,6 +42,9 @@ public class LevelController : MonoBehaviour
     private bool _isPause;
     private GameObject ghosts;
     public PlanController planController;
+
+
+    public float blue = 0;
 
     enum Direction { UP, DOWN, LEFT, RIGHT }
 
@@ -313,9 +316,7 @@ public class LevelController : MonoBehaviour
             return;
 
         if (_isPause) ResumeGame();
-        ghosts = new GameObject();
-        ghosts.name = "Ghosts";
-        ghosts.transform.SetParent(transform);
+        CreateGhosts();
         foreach (KeyValuePair<StateSpaceNode, int> entry in planController.GetThread().GetResult())
         {
             Vector2 playerPosition = GetPlayerPosition(entry.Key.state);
@@ -347,6 +348,13 @@ public class LevelController : MonoBehaviour
             }
         }
         planController.DeleteThread();
+    }
+
+    private void CreateGhosts()
+    {
+        ghosts = new GameObject();
+        ghosts.name = "Ghosts";
+        ghosts.transform.SetParent(transform);
     }
 
     public void DeleteGhosts()
@@ -389,5 +397,85 @@ public class LevelController : MonoBehaviour
                 }
             }
         return NullVector2;
+    }
+
+    public void ConvertSSNodeToGhosts(StateSpaceNode _previousNode)
+    {
+        if (ghosts == null)
+            CreateGhosts();
+
+        if (transform.FindChild("Player").gameObject.activeSelf)
+            transform.FindChild("Player").gameObject.SetActive(false);
+
+        if (transform.FindChild("Moveable Boxes").gameObject.activeSelf)
+            transform.FindChild("Moveable Boxes").gameObject.SetActive(false);
+
+        for (int i = 0; i < ghosts.transform.childCount; i++)
+        {
+            GameObject ghost = ghosts.transform.GetChild(i).gameObject;
+            ghost.transform.localScale = Vector3.one;
+            Renderer renderer = ghost.transform.GetChild(0).GetComponent<Renderer>();
+            Color color = renderer.material.color;
+            if (ghost.name.Contains("Player"))
+            {
+                Color otherColor = PlayerGhostPrefab.transform.GetChild(0).GetComponent<Renderer>().sharedMaterial.color;
+                color.r = otherColor.r;
+                color.g = otherColor.g;
+                color.b = otherColor.b;
+            }
+            else
+            {
+                Color otherColor = BoxGhostPrefab.transform.GetChild(0).GetComponent<Renderer>().sharedMaterial.color;
+                color.r = otherColor.r;
+                color.g = otherColor.g;
+                color.b = otherColor.b;
+            }
+            color.a *= 0.7f;
+            color.a = Mathf.Clamp01(color.a);
+
+            renderer.material.color= color;
+        }
+
+        foreach (Literal literal in _previousNode.state.Literals)
+        {
+            if (literal is Predication)
+                if (((Predication)literal).predicate == "has_player")
+                    CreatePlayerGhost((Predication)literal);
+
+            if (literal is Predication)
+                if (((Predication)literal).predicate == "has_box")
+                    CreateBoxGhost((Predication)literal);
+        }
+    }
+
+    private GameObject CreatePlayerGhost(Predication predication)
+    {
+        string[] cell = predication.terms.get(0).name.Split('_');
+        int x = Convert.ToInt32(cell[1]);
+        int y = Convert.ToInt32(cell[2]);
+        GameObject playerGhost = Instantiate(PlayerGhostPrefab);
+        playerGhost.transform.SetParent(ghosts.transform);
+        playerGhost.GetComponent<Cell>().SetCell(grid.grid[x, y], false);
+        playerGhost.transform.FindChild("Cost").GetComponent<TextMesh>().text = "";
+        playerGhost.transform.localScale *= 1.1f;
+        playerGhost.transform.localPosition += new Vector3(0, 0.51f, 0);
+        Renderer renderer = playerGhost.transform.GetChild(0).GetComponent<Renderer>();
+        renderer.material.color = new Color(0, 1, 0);
+        return playerGhost;
+    }
+
+    private GameObject CreateBoxGhost(Predication predication)
+    {
+        string[] cell = predication.terms.get(0).name.Split('_');
+        int x = Convert.ToInt32(cell[1]);
+        int y = Convert.ToInt32(cell[2]);
+        GameObject boxGhost = Instantiate(BoxGhostPrefab);
+        boxGhost.transform.SetParent(ghosts.transform);
+        boxGhost.GetComponent<Cell>().SetCell(grid.grid[x, y], false);
+        boxGhost.transform.FindChild("Cost").GetComponent<TextMesh>().text = "";
+        boxGhost.transform.localScale *= 1.1f;
+        Renderer renderer = boxGhost.transform.GetChild(0).GetComponent<Renderer>();
+        renderer.material.color = new Color(0, 0, 1);
+        return boxGhost;
     }
 }

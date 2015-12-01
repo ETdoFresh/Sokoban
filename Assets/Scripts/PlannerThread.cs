@@ -5,6 +5,7 @@ using StateSpaceSearchProject;
 using HeuristicSearchPlanner;
 using System.Collections.Generic;
 using System;
+using Planning;
 
 public class PlannerThread : ThreadJob
 {
@@ -17,6 +18,7 @@ public class PlannerThread : ThreadJob
     {
         _ssProblem = ssProblem;
         _plannerFunction = plannerFunction;
+
         switch (plannerType)
         {
             case "BFS":
@@ -36,7 +38,7 @@ public class PlannerThread : ThreadJob
         if (_plannerFunction == "NextState")
             _result = _planner.GetNextStates();
         else
-            _planner.GetNextStates();
+            _planner.findNextSolution();
         base.ThreadFunction();
     }
 
@@ -45,9 +47,9 @@ public class PlannerThread : ThreadJob
         return _result;
     }
 
-    public Level GetCurrentState()
+    public StateSpaceNode GetCurrentNode()
     {
-        return ConvertToLevel(_planner.GetCurrentNode());
+        return _planner.GetCurrentNode();
     }
 
     private Level ConvertToLevel(StateSpaceNode node)
