@@ -5,7 +5,8 @@ using UnityEngine.UI;
 public class Status : MonoBehaviour
 {
     private static GameObject _instance;
-    private static Text _text;
+    private static string _text;
+    private static Text _textComponent;
 
     void Start()
     {
@@ -13,12 +14,19 @@ public class Status : MonoBehaviour
             Destroy(_instance);
 
         _instance = gameObject;
-        _text = transform.FindChild("Canvas").FindChild("Text").GetComponent<Text>();
+        _textComponent = transform.FindChild("Canvas").FindChild("Text").GetComponent<Text>();
+        _text = _textComponent.text;
     }
 
     public static void SetText(string text)
     {
-        if (_text != null)
-            _text.text = text;
+        _text = text;
+    }
+
+    private void Update()
+    {
+        if (_textComponent != null)
+            if (_textComponent.text != _text)
+                _textComponent.text = _text;
     }
 }

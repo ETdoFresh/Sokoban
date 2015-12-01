@@ -13,12 +13,13 @@ using UnityThread;
 public class LevelController : MonoBehaviour
 {
     static public int MAX_LEVEL = 4;
-    static public int CURRENT_LEVEL = 1;
+    static public int CURRENT_LEVEL = 2;
     static public event Action OnMove = delegate { };
     static public TextAsset domain;
     static public int num_times_enables = 0;
     static readonly Vector2 NullVector2 = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
 
+    public Level level;
     public int numberTimesEnables = 0;
     public MainGrid grid;
     public GameObject player;
@@ -30,24 +31,17 @@ public class LevelController : MonoBehaviour
     public GameObject PlayerPrefab;
     public GameObject PlayerGhostPrefab;
     public GameObject BoxGhostPrefab;
-    public GameObject PaperPrefab;
     public GameObject CompleteMenuPrefab;
     public GameObject FailMenuPrefab;
     public GameObject PauseMenuPrefab;
-    public GameObject PlanMenuPrefab;
     public GameObject StartingCinematicPrefab;
     public GameObject MiddleCinematicPrefab;
     public GameObject EndingCinematicPrefab;
-    public Level level;
     private int _boxesPushed = 0;
     private bool _isComplete;
     private bool _isPause;
-    private StateSpaceProblem _ssProblem;
-    private PlannerThread _hThread;
-    private bool _isLookingAtPaper = false;
     private GameObject ghosts;
-    private string _plannerType = null;
-    private bool _useNovelty;
+    public PlanController planController;
 
     enum Direction { UP, DOWN, LEFT, RIGHT }
 
@@ -170,7 +164,7 @@ public class LevelController : MonoBehaviour
         CheckForHThread();
     }
 
-    private void PauseGame()
+    public void PauseGame()
     {
         _isPause = true;
         InputController.OnUp -= MoveUp;
@@ -179,7 +173,7 @@ public class LevelController : MonoBehaviour
         InputController.OnRight -= MoveRight;
     }
 
-    private void ResumeGame()
+    public void ResumeGame()
     {
         Cinematic.OnCinematicFinish -= ResumeGame;
         _isPause = false;
@@ -196,8 +190,6 @@ public class LevelController : MonoBehaviour
 
     void Move(Cell cell, Direction direction)
     {
-        DeleteGhosts();
-
         GameObject destinationCell = null;
         int x = cell.x;
         int y = cell.y;
@@ -219,6 +211,7 @@ public class LevelController : MonoBehaviour
 
         if (isValidMove(destinationCell, direction))
         {
+            DeleteGhosts();
             cell.SetCell(destinationCell);
             if (cell.gameObject == player)
                 OnMove();
@@ -226,12 +219,6 @@ public class LevelController : MonoBehaviour
 
         _boxesPushed = 0;
         CheckTargets();
-    }
-
-    private void DeleteGhosts()
-    {
-        if (ghosts != null)
-            Destroy(ghosts);
     }
 
     bool isValidMove(GameObject cell, Direction direction)
@@ -320,131 +307,16 @@ public class LevelController : MonoBehaviour
         Destroy(gameObject);
     }
 
-    public void ClickPlan()
-    {
-        _isLookingAtPaper = true;
-        _ssProblem = null;
-        _plannerType = null;
-        DeleteGhosts();
-
-        GameObject planMenu = Instantiate(PlanMenuPrefab);
-        planMenu.transform.SetParent(transform);
-        PlanMenuController.OnClickCompute += ShowDomainPDDL;
-        PlanMenuController.OnClickCancel += FinishWithPaper;
-
-        GetProblem();
-    }
-
-    private void GetProblem()
-    {
-        LevelState ls = new LevelState(gameObject, level);
-        string pddl = ls.ToPDDL();
-        Debug.Log("Thread Started - Getting Problem...");
-        ThreadJob thread = new ProblemThread(pddl, level, domain.text);
-        thread.Start();
-        thread.OnThreadComplete += ProblemThreadCallback;
-        thread.OnThreadAbort += Abort;
-    }
-
-    private void ShowDomainPDDL(PlanMenuController planMenu)
-    {
-        PlanMenuController.OnClickCompute -= ShowDomainPDDL;
-        PauseGame();
-
-        _plannerType = planMenu.GetPlanner();
-        _useNovelty = planMenu.UseNovelty();
-
-        GameObject paper = Instantiate(PaperPrefab);
-        paper.transform.localPosition += new Vector3(0, 3, 0);
-        paper.transform.FindChild("Paper Object").localEulerAngles -= new Vector3(90, 0, 0);
-        paper.transform.FindChild("Paper Object").localScale = Vector3.one * 5;
-        paper.transform.FindChild("Paper Object").localPosition += new Vector3(0, 0, -10);
-        paper.GetComponentInChildren<PaperResize>().SetText(domain.text);
-        PaperController.OnClickDone += ShowProblemPDDL;
-        Status.SetText("Showing Domain PDDL...");
-
-        if (IsReadyToSolve())
-            GetNextState();
-    }
-
-    private void ShowProblemPDDL()
-    {
-        PaperController.OnClickDone -= ShowProblemPDDL;
-        LevelState ls = new LevelState(gameObject, level);
-        string pddl = ls.ToPDDL();
-
-        GameObject paper = Instantiate(PaperPrefab);
-        paper.transform.localPosition += new Vector3(0, 3, 0);
-        paper.transform.FindChild("Paper Object").localEulerAngles -= new Vector3(90, 0, 0);
-        paper.transform.FindChild("Paper Object").localScale = Vector3.one * 5;
-        paper.transform.FindChild("Paper Object").localPosition += new Vector3(0, 0, -10);
-        paper.GetComponentInChildren<PaperResize>().SetText(pddl);
-        PaperController.OnClickDone += FinishWithPaper;
-        Status.SetText("Showing Problem PDDL...");
-    }
-
-    private void FinishWithPaper()
-    {
-        PaperController.OnClickDone -= FinishWithPaper;
-        PlanMenuController.OnClickCancel -= FinishWithPaper;
-        _isLookingAtPaper = false;
-
-        if (_hThread == null)
-            Status.SetText("Still Computing...");
-    }
-
-    private void ProblemThreadCallback(ThreadJob thread)
-    {
-        Debug.Log("Thread Complete - Getting Problem...");
-        if (thread is ProblemThread)
-        {
-            ProblemThread pThread = (ProblemThread)thread;
-            _ssProblem = pThread.GetStateSpaceProblem();
-            Debug.Log(_ssProblem);
-        }
-        thread.ResetEventSubscriptions();
-
-        if (IsReadyToSolve())
-            GetNextState();
-    }
-
-    private bool IsReadyToSolve()
-    {
-        return _ssProblem != null && _plannerType != null;
-    }
-
-    private void GetNextState()
-    {
-        Debug.Log("Thread Started - Getting Next States...");
-        ThreadJob thread = new PlannerThread(_ssProblem, _plannerType, _useNovelty);
-        thread.Start();
-        thread.OnThreadComplete += PlannerCallback;
-        thread.OnThreadAbort += Abort;
-    }
-
-    private void Abort(ThreadJob thread)
-    {
-        Debug.Log("Thread has been aborted.");
-        thread.ResetEventSubscriptions();
-    }
-
-    private void PlannerCallback(ThreadJob thread)
-    {
-        Debug.Log("Thread Complete - Getting Next States...");
-        _hThread = (PlannerThread)thread;
-        thread.ResetEventSubscriptions();
-    }
-
     private void CheckForHThread()
     {
-        if (_hThread == null || _isLookingAtPaper)
+        if (planController.GetThread() == null)
             return;
 
         if (_isPause) ResumeGame();
         ghosts = new GameObject();
         ghosts.name = "Ghosts";
         ghosts.transform.SetParent(transform);
-        foreach (KeyValuePair<StateSpaceNode, int> entry in _hThread.GetResult())
+        foreach (KeyValuePair<StateSpaceNode, int> entry in planController.GetThread().GetResult())
         {
             Vector2 playerPosition = GetPlayerPosition(entry.Key.state);
             int x = Convert.ToInt32(playerPosition.x);
@@ -474,8 +346,13 @@ public class LevelController : MonoBehaviour
                 }
             }
         }
-        Status.SetText("Next States Shown...");
-        _hThread = null;
+        planController.DeleteThread();
+    }
+
+    public void DeleteGhosts()
+    {
+        if (ghosts != null)
+            Destroy(ghosts);
     }
 
     private List<Vector2> GetBoxPositions(StateSpaceNode node)

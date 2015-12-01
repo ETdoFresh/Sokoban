@@ -37,6 +37,7 @@ namespace HeuristicSearchPlanner
             while (queue.Count > 0)
             {
                 StateSpaceNode node = queue.Dequeue();
+                _currentNode = node;
                 if (problem.goal.IsTrue(node.state))
                     return node.plan;
                 node.expand();

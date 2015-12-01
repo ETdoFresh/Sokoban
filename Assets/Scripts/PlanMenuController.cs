@@ -11,6 +11,7 @@ public class PlanMenuController : MonoBehaviour
 
     public GameObject NoveltyCheckbox;
     public GameObject PlannerRadioGroup;
+    public GameObject PlannerFunctionGroup;
 
     public void ClickCancel()
     {
@@ -32,6 +33,15 @@ public class PlanMenuController : MonoBehaviour
     public string GetPlanner()
     {
         foreach (Toggle toggle in PlannerRadioGroup.GetComponentsInChildren<Toggle>())
+            if (toggle.isOn)
+                return toggle.name;
+
+        return null;
+    }
+
+    public string GetPlannerFunction()
+    {
+        foreach (Toggle toggle in PlannerFunctionGroup.GetComponentsInChildren<Toggle>())
             if (toggle.isOn)
                 return toggle.name;
 

@@ -28,6 +28,7 @@ GameObject:
   - 4: {fileID: 461154}
   - 114: {fileID: 11417928}
   - 114: {fileID: 11401222}
+  - 114: {fileID: 11496368}
   m_Layer: 0
   m_Name: Level
   m_TagString: Untagged
@@ -213,14 +214,13 @@ MonoBehaviour:
   PlayerPrefab: {fileID: 138618, guid: 99155d06fd3763c49a6002a004d381f4, type: 2}
   PlayerGhostPrefab: {fileID: 193184, guid: 72ca6affa764dae4aaf400a6543ef394, type: 2}
   BoxGhostPrefab: {fileID: 113372, guid: c71650b494bf3b8468b12fa760cc7cc6, type: 2}
-  PaperPrefab: {fileID: 106132, guid: 0d8b7ab267ca7b840a711fd6ead7ef9a, type: 2}
   CompleteMenuPrefab: {fileID: 164660, guid: d29dcb0d9d29282459e53ce01db96b87, type: 2}
   FailMenuPrefab: {fileID: 182216, guid: 9b4b11cb5a1f78b4c9dc1f7caa3469ea, type: 2}
   PauseMenuPrefab: {fileID: 135712, guid: 0963ecb89de1d42459ca01070d347d2c, type: 2}
-  PlanMenuPrefab: {fileID: 152314, guid: e4502389307dbc0468f0841b0f437947, type: 2}
   StartingCinematicPrefab: {fileID: 0}
   MiddleCinematicPrefab: {fileID: 0}
   EndingCinematicPrefab: {fileID: 0}
+  planController: {fileID: 11496368}
 --- !u!114 &11429654
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -405,7 +405,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 11417928}
+      - m_Target: {fileID: 11496368}
         m_MethodName: ClickPlan
         m_Mode: 1
         m_Arguments:
@@ -418,6 +418,20 @@ MonoBehaviour:
         m_CallState: 1
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
+--- !u!114 &11496368
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 146894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3f402124940a6648b505d10075826ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PlanMenuPrefab: {fileID: 184966, guid: e4502389307dbc0468f0841b0f437947, type: 2}
+  PaperPrefab: {fileID: 106132, guid: 0d8b7ab267ca7b840a711fd6ead7ef9a, type: 2}
+  levelController: {fileID: 11417928}
 --- !u!222 &22239028
 CanvasRenderer:
   m_ObjectHideFlags: 1

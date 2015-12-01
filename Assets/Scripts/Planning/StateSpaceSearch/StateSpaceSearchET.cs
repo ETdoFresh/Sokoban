@@ -7,6 +7,8 @@ namespace StateSpaceSearchProject
 {
     public abstract class StateSpaceSearchET : StateSpaceSearch
     {
+        protected StateSpaceNode _currentNode;
+
         public StateSpaceSearchET(StateSpaceProblem problem) : base (problem)
         {
         }
@@ -34,6 +36,11 @@ namespace StateSpaceSearchProject
         protected virtual int GetCost(StateSpaceNode child)
         {
             return 0;
+        }
+
+        public virtual StateSpaceNode GetCurrentNode()
+        {
+            return _currentNode;
         }
     }
 }
