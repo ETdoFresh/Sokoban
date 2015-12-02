@@ -123,7 +123,7 @@ namespace StateSpaceSearchProject
         public override string ToString()
         {
             string planstr = "{";
-            planstr += "[" + plan.size() + "] ";
+            planstr += "[" + plan.Size() + "] ";
             foreach (Step step in plan) planstr += step + ", ";
             return planstr;
         }

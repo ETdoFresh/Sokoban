@@ -51,7 +51,7 @@ namespace StateSpaceSearchProject
             _size = 0;
         }
 
-        public int size()
+        public int Size()
         {
             return _size;
         }

@@ -15,6 +15,6 @@ namespace Planning
          * 
          * @return the number of steps
          */
-        int size();
+        int Size();
     }
 }

@@ -1,7 +1,7 @@
 ﻿using BreadthFirstSearch;
-using GraphPlanProject;
+using GraphPlanSGW;
 using HeuristicSearchPlanner;
-using PlanGraphProject;
+using PlanGraphSGW;
 using Planning;
 using Planning.IO;
 using StateSpaceSearchProject;
@@ -22,9 +22,9 @@ namespace Benchmark
             string domainString = ReadFile(domainFile);
             string problemString = ReadFile(problemFile);
             Problem problem = PDDLReader.GetProblem(domainString, problemString);
-            PlanGraph planGraph = new PlanGraph(problem);
-            GraphPlanNoYield graphPlan = new GraphPlanNoYield(planGraph, problem);
-            graphPlan.FindPlan();
+            PlanGraphPlanner pgPlanner = new GraphPlan();
+            PlanGraphSearch pgSearch = new PlanGraphSearch(pgPlanner, problem);
+            pgSearch.findNextSolution();
             //HSPlanner hsp = new HSPlanner(ssProblem);
             //Plan plan = hsp.findNextSolution();
         }
