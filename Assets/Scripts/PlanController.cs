@@ -38,7 +38,7 @@ public class PlanController : MonoBehaviour
         _plannerType = null;
         _useNovelty = false;
         levelController.PauseGame();
-        levelController.DeleteGhosts();
+        levelController.DeleteHelpers();
         GameObject planMenu = Instantiate(PlanMenuPrefab);
         planMenu.transform.SetParent(transform);
         PlanMenuController.OnClickCompute += ShowDomainPDDL;
@@ -181,6 +181,8 @@ public class PlanController : MonoBehaviour
     {
         computeThreadState = ThreadState.Complete;
         if (planMenuState == PlanMenuState.Wait)
+            planMenuState = PlanMenuState.Complete;
+        if (planMenuState == PlanMenuState.Computing)
             planMenuState = PlanMenuState.Complete;
         Status.SetText(GetStatus());
 

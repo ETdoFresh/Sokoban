@@ -18,13 +18,15 @@ namespace Benchmark
         static void Main(string[] args)
         {
             string domainFile = "Sokoban_domain.txt";
-            string problemFile = "Sokoban_Problem_1.txt";
+            string problemFile = "Sokoban_Problem_0.txt";
             string domainString = ReadFile(domainFile);
             string problemString = ReadFile(problemFile);
             Problem problem = PDDLReader.GetProblem(domainString, problemString);
-            StateSpaceProblem ssProblem = new StateSpaceProblem(problem);
-            HSPlanner hsp = new HSPlanner(ssProblem);
-            Plan plan = hsp.findNextSolution();
+            PlanGraph planGraph = new PlanGraph(problem);
+            GraphPlanNoYield graphPlan = new GraphPlanNoYield(planGraph, problem);
+            graphPlan.FindPlan();
+            //HSPlanner hsp = new HSPlanner(ssProblem);
+            //Plan plan = hsp.findNextSolution();
         }
 
         private static string ReadFile(string filename)

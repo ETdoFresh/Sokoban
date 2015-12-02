@@ -54,7 +54,7 @@ namespace PlanGraphProject
 
             StateSpaceProblem ssProblem = new StateSpaceProblem(problem);
             addAllSteps(ssProblem.steps);
-            addAllEffects(ssProblem.steps);
+            addAllEffects(ssProblem.literals);
             addAllPerstitenceSteps();
 
             connectParentsToChildren();
@@ -224,28 +224,8 @@ namespace PlanGraphProject
          * 
          * @param steps All possible steps
          */
-        private void addAllEffects(ImmutableArray<Step> steps)
+        private void addAllEffects(ImmutableArray<Literal> literals)
         {
-            List<Literal> literals = new List<Literal>();
-            foreach (Step step in steps)
-            {
-                foreach (Literal literal in ConversionUtil.expressionToLiterals(step.effect))
-                    if (!literals.Contains(literal))
-                        literals.Add(literal);
-
-                foreach (Literal literal in ConversionUtil.expressionToLiterals(step.precondition))
-                    if (!literals.Contains(literal))
-                        literals.Add(literal);
-
-                foreach (Literal literal in ConversionUtil.expressionToLiterals(step.effect))
-                    if (!literals.Contains(literal.Negate()))
-                        literals.Add(literal.Negate());
-
-                foreach (Literal literal in ConversionUtil.expressionToLiterals(step.precondition))
-                    if (!literals.Contains(literal.Negate()))
-                        literals.Add(literal.Negate());
-            }
-
             foreach (Literal literal in literals)
                 _effects.Add(new PlanGraphLiteral(literal));
         }

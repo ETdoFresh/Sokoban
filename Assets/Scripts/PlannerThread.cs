@@ -12,6 +12,7 @@ public class PlannerThread : ThreadJob
     private StateSpaceProblem _ssProblem;
     private StateSpaceSearchET _planner;
     private Dictionary<StateSpaceNode, int> _result;
+    private Plan _plan;
     private string _plannerFunction;
 
     public PlannerThread(StateSpaceProblem ssProblem, string plannerFunction, string plannerType, bool useNovelty)
@@ -38,13 +39,18 @@ public class PlannerThread : ThreadJob
         if (_plannerFunction == "NextState")
             _result = _planner.GetNextStates();
         else
-            _planner.findNextSolution();
+            _plan = _planner.findNextSolution();
         base.ThreadFunction();
     }
 
     public Dictionary<StateSpaceNode, int> GetResult()
     {
         return _result;
+    }
+
+    public Plan GetPlan()
+    {
+        return _plan;
     }
 
     public StateSpaceNode GetCurrentNode()

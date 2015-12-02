@@ -31,6 +31,7 @@ public class LevelController : MonoBehaviour
     public GameObject PlayerPrefab;
     public GameObject PlayerGhostPrefab;
     public GameObject BoxGhostPrefab;
+    public GameObject ArrowPrefab;
     public GameObject CompleteMenuPrefab;
     public GameObject FailMenuPrefab;
     public GameObject PauseMenuPrefab;
@@ -41,6 +42,7 @@ public class LevelController : MonoBehaviour
     private bool _isComplete;
     private bool _isPause;
     private GameObject ghosts;
+    private GameObject arrows;
     public PlanController planController;
 
 
@@ -164,7 +166,8 @@ public class LevelController : MonoBehaviour
         {
             PlayCinematic(MiddleCinematicPrefab);
         }
-        CheckForHThread();
+        CheckForCompleteNextState();
+        CheckForCompleteSolution();
     }
 
     public void PauseGame()
@@ -214,7 +217,7 @@ public class LevelController : MonoBehaviour
 
         if (isValidMove(destinationCell, direction))
         {
-            DeleteGhosts();
+            DeleteHelpers();
             cell.SetCell(destinationCell);
             if (cell.gameObject == player)
                 OnMove();
@@ -310,13 +313,16 @@ public class LevelController : MonoBehaviour
         Destroy(gameObject);
     }
 
-    private void CheckForHThread()
+    private void CheckForCompleteNextState()
     {
-        if (planController.GetThread() == null)
+        if (planController.planMenuState != PlanController.PlanMenuState.Complete)
+            return;
+
+        if (planController._plannerFunction != "NextState")
             return;
 
         if (_isPause) ResumeGame();
-        CreateGhosts();
+        CreateHelpers();
         foreach (KeyValuePair<StateSpaceNode, int> entry in planController.GetThread().GetResult())
         {
             Vector2 playerPosition = GetPlayerPosition(entry.Key.state);
@@ -350,17 +356,65 @@ public class LevelController : MonoBehaviour
         planController.DeleteThread();
     }
 
-    private void CreateGhosts()
+    private void CheckForCompleteSolution()
+    {
+        if (planController.planMenuState != PlanController.PlanMenuState.Complete)
+            return;
+
+        if (planController._plannerFunction != "Solution")
+            return;
+
+        if (planController.GetThread() == null)
+            return;
+
+        if (_isPause) ResumeGame();
+        ShowPlanArrows(planController.GetThread().GetPlan());
+        planController.DeleteThread();
+
+    }
+
+    private void ShowPlanArrows(Plan plan)
+    {
+        DeleteHelpers();
+        CreateHelpers();
+        transform.FindChild("Player").gameObject.SetActive(true);
+        transform.FindChild("Moveable Boxes").gameObject.SetActive(true);
+        foreach (Step step in plan)
+        {
+            GameObject arrow = Instantiate(ArrowPrefab);
+            arrow.transform.SetParent(arrows.transform);
+            Point point = SokobanDomain.GetPlayerPosition(step);
+            arrow.GetComponent<Cell>().SetCell(grid.grid[point.x, point.y], false);
+
+            string direction = SokobanDomain.GetDirectionFromStep(step);
+            if (direction == "Left")
+                arrow.transform.localEulerAngles += new Vector3(0, -90, 0);
+            else if (direction == "Right")
+                arrow.transform.localEulerAngles += new Vector3(0, 90, 0);
+            else if (direction == "Up")
+                arrow.transform.localEulerAngles += new Vector3(0, 0, 0);
+            else if (direction == "Down")
+                arrow.transform.localEulerAngles += new Vector3(0, 180, 0);
+        }
+    }
+
+    private void CreateHelpers()
     {
         ghosts = new GameObject();
         ghosts.name = "Ghosts";
         ghosts.transform.SetParent(transform);
+        arrows = new GameObject();
+        arrows.name = "Arrows";
+        arrows.transform.SetParent(transform);
     }
 
-    public void DeleteGhosts()
+    public void DeleteHelpers()
     {
         if (ghosts != null)
             Destroy(ghosts);
+
+        if (arrows != null)
+            Destroy(arrows);
     }
 
     private List<Vector2> GetBoxPositions(StateSpaceNode node)
@@ -402,7 +456,7 @@ public class LevelController : MonoBehaviour
     public void ConvertSSNodeToGhosts(StateSpaceNode _previousNode)
     {
         if (ghosts == null)
-            CreateGhosts();
+            CreateHelpers();
 
         if (transform.FindChild("Player").gameObject.activeSelf)
             transform.FindChild("Player").gameObject.SetActive(false);
@@ -433,7 +487,7 @@ public class LevelController : MonoBehaviour
             color.a *= 0.7f;
             color.a = Mathf.Clamp01(color.a);
 
-            renderer.material.color= color;
+            renderer.material.color = color;
         }
 
         foreach (Literal literal in _previousNode.state.Literals)
