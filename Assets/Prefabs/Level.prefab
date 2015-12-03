@@ -222,7 +222,7 @@ MonoBehaviour:
   MiddleCinematicPrefab: {fileID: 0}
   EndingCinematicPrefab: {fileID: 0}
   planController: {fileID: 11496368}
-  blue: 0
+  planButton: {fileID: 100126}
 --- !u!114 &11429654
 MonoBehaviour:
   m_ObjectHideFlags: 1

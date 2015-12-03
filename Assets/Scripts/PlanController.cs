@@ -21,6 +21,7 @@ public class PlanController : MonoBehaviour
     private StateSpaceProblem _ssProblem;
     private PlannerThread _hThread;
     private StateSpaceNode _previousNode;
+    private bool planButtonActive;
     // Public for Unity Debug
     public string _plannerFunction = null;
     public string _plannerType = null;
@@ -37,6 +38,7 @@ public class PlanController : MonoBehaviour
         _plannerFunction = null;
         _plannerType = null;
         _useNovelty = false;
+        levelController.planButton.SetActive(false);
         levelController.PauseGame();
         levelController.DeleteHelpers();
         GameObject planMenu = Instantiate(PlanMenuPrefab);
@@ -77,7 +79,7 @@ public class PlanController : MonoBehaviour
         paper.GetComponentInChildren<PaperResize>().SetText(LevelController.domain.text);
         PaperController.OnClickDone += ShowProblemPDDL;
 
-        if (_plannerFunction == "NextState")
+        if (_plannerFunction == "NextState" || _plannerFunction == "PlanGraph")
             if (problemThreadState == ThreadState.Complete)
                 GetNextState();
     }
@@ -102,13 +104,13 @@ public class PlanController : MonoBehaviour
 
     private void FinishWithPaper()
     {
-        if (_plannerFunction == "NextState")
+        if (_plannerFunction == "NextState" || _plannerFunction == "PlanGraph")
         {
             planMenuState = PlanMenuState.Wait;
             if (computeThreadState == ThreadState.Complete)
                 planMenuState = PlanMenuState.Complete;
         }
-        else
+        else if (_plannerFunction == "Solution")
         {
             planMenuState = PlanMenuState.Computing;
             StartFindingSolution();
@@ -126,6 +128,8 @@ public class PlanController : MonoBehaviour
 
         PlanMenuController.OnClickCancel -= FinishWithPaper2;
         PlanMenuController.OnClickCompute -= ShowDomainPDDL;
+        levelController.ResumeGame();
+        levelController.planButton.SetActive(true);
     }
 
     private void ProblemThreadCallback(ThreadJob thread)
@@ -142,10 +146,14 @@ public class PlanController : MonoBehaviour
         thread.ResetEventSubscriptions();
 
         if (_plannerFunction == "NextState")
+        {
             if (planMenuState == PlanMenuState.Domain
             || planMenuState == PlanMenuState.Problem
             || planMenuState == PlanMenuState.Wait)
                 GetNextState();
+        }
+        else if (_plannerFunction == "PlanGraph")
+            GetNextState();
     }
 
     private void GetNextState()
@@ -157,6 +165,13 @@ public class PlanController : MonoBehaviour
         thread.Start();
         thread.OnThreadComplete += PlannerCallback;
         thread.OnThreadAbort += Abort;
+
+        if (_plannerFunction == "PlanGraph")
+        {
+            _hThread = (PlannerThread)thread;
+            levelController.pgLevel = 0;
+            levelController.pgLevelTimer = 0;
+        }
     }
 
     // Probably just need to use GetNextState (and rename function while you're at it)
@@ -188,6 +203,7 @@ public class PlanController : MonoBehaviour
 
         _hThread = (PlannerThread)thread;
         thread.ResetEventSubscriptions();
+        planButtonActive = true;
     }
 
     private string GetStatus()
@@ -241,11 +257,21 @@ public class PlanController : MonoBehaviour
 
     private void Update()
     {
-        if (GetPlannerStateChanged())
+        if (_plannerFunction != "PlanGraph")
+            if (GetPlannerStateChanged())
+            {
+                _previousNode = _hThread.GetCurrentNode();
+                Debug.Log(_hThread.GetCurrentNode());
+                levelController.ConvertSSNodeToGhosts(_previousNode);
+            }
+
+        if (planButtonActive)
         {
-            _previousNode = _hThread.GetCurrentNode();
-            Debug.Log(_hThread.GetCurrentNode());
-            levelController.ConvertSSNodeToGhosts(_previousNode);
+            levelController.planButton.SetActive(true);
+            planButtonActive = false;
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+            StateSpaceSearchET.ShutThisSuckaDown = true;
     }
 }

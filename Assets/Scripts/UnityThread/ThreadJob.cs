@@ -18,24 +18,24 @@ namespace UnityThread
 
         public virtual void Start()
         {
+            _isRunning = true;
             _thread = new Thread(ThreadFunction);
             _thread.Start();
-            _isRunning = true;
         }
 
         public virtual void Abort()
         {
+            _isRunning = false;
             _thread.Abort();
             OnThreadAbort(this);
-            _isRunning = false;
         }
 
         protected virtual void ThreadFunction()
         {
             if (_isRunning)
             {
-                OnThreadComplete(this);
                 _isRunning = false;
+                OnThreadComplete(this);
             }
         }
 

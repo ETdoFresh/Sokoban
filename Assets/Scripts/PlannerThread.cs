@@ -2,10 +2,14 @@
 using System.Collections;
 using UnityThread;
 using StateSpaceSearchProject;
-using HeuristicSearchPlanner;
 using System.Collections.Generic;
 using System;
 using Planning;
+using FastForward;
+using HeuristicSearchPlannerSGW;
+using BreadthFirstSearch;
+using IterativeWidthPlanner;
+using PlanGraphSGW;
 
 public class PlannerThread : ThreadJob
 {
@@ -14,6 +18,7 @@ public class PlannerThread : ThreadJob
     private Dictionary<StateSpaceNode, int> _result;
     private Plan _plan;
     private string _plannerFunction;
+    private PlanGraph _planGraph;
 
     public PlannerThread(StateSpaceProblem ssProblem, string plannerFunction, string plannerType, bool useNovelty)
     {
@@ -23,13 +28,28 @@ public class PlannerThread : ThreadJob
         switch (plannerType)
         {
             case "BFS":
-                //_planner = new BFSPlanner(_ssProblem);
+                if (useNovelty)
+                    _planner = new BFSIWPlanner(_ssProblem);
+                else
+                    _planner = new BFSPlanner(_ssProblem);
                 break;
             case "HSP":
-                _planner = new HSPlanner(_ssProblem);
+                if (useNovelty)
+                {
+                    HeuristicSearchPlanner hsp = new HSPIWPlanner();
+                    _planner = hsp.makeSearch(_ssProblem);
+                }
+                else
+                {
+                    HeuristicSearchPlanner hsp = new HeuristicSearchPlanner();
+                    _planner = hsp.makeSearch(_ssProblem);
+                }
                 break;
             case "FF":
-                //_planner = new FFPlanner(_ssProblem);
+                if (useNovelty)
+                    _planner = new FFIWPlanner(_ssProblem);
+                else
+                    _planner = new FastForwardSearch(_ssProblem);
                 break;
         }
     }
@@ -38,6 +58,13 @@ public class PlannerThread : ThreadJob
     {
         if (_plannerFunction == "NextState")
             _result = _planner.GetNextStates();
+        else if (_plannerFunction == "PlanGraph")
+        {
+            _planGraph = new PlanGraph(_ssProblem);
+            _planGraph.initialize(_ssProblem.initial);
+            while (!_planGraph.goalAchieved() && !_planGraph.hasLeveledOff())
+                _planGraph.extend();
+        }
         else
             _plan = _planner.findNextSolution();
         base.ThreadFunction();
@@ -51,6 +78,11 @@ public class PlannerThread : ThreadJob
     public Plan GetPlan()
     {
         return _plan;
+    }
+
+    public PlanGraph GetPlanGraph()
+    {
+        return _planGraph;
     }
 
     public StateSpaceNode GetCurrentNode()

@@ -45,5 +45,34 @@ namespace Planning.Util
 
             return top_value;
         }
+
+        public T Peek()
+        {
+            // Find the hightest priority.
+            int best_index = 0;
+            int best_priority = Priorities[0];
+            for (int i = 1; i < Priorities.Count; i++)
+            {
+                if (best_priority > Priorities[i])
+                {
+                    best_priority = Priorities[i];
+                    best_index = i;
+                }
+            }
+
+            // Return the corresponding item.
+            return Values[best_index];
+        }
+
+        public void Clear()
+        {
+            Priorities.Clear();
+            Values.Clear();
+        }
+
+        public int Size()
+        {
+            return Values.Count;
+        }
     }
 }

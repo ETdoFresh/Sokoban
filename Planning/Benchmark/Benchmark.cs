@@ -1,6 +1,8 @@
 ﻿using BreadthFirstSearch;
+using FastForward;
 using GraphPlanSGW;
-using HeuristicSearchPlanner;
+using HeuristicSearchPlannerSGW;
+using IterativeWidthPlanner;
 using PlanGraphSGW;
 using Planning;
 using Planning.IO;
@@ -22,10 +24,23 @@ namespace Benchmark
             string domainString = ReadFile(domainFile);
             string problemString = ReadFile(problemFile);
             Problem problem = PDDLReader.GetProblem(domainString, problemString);
-            PlanGraphPlanner pgPlanner = new GraphPlan();
-            PlanGraphSearch pgSearch = new PlanGraphSearch(pgPlanner, problem);
-            pgSearch.findNextSolution();
-            //HSPlanner hsp = new HSPlanner(ssProblem);
+            StateSpaceProblem ssProblem = new StateSpaceProblem(problem);
+
+            //HSPIWPlanner hsp = new HSPIWPlanner();
+            //HeuristicSearch iw = hsp.makeSearch(ssProblem);
+            //Plan plan = iw.findNextSolution();
+
+            //FastForwardSearch ff = new FastForwardSearch(ssProblem);
+            //Plan plan = ff.findNextSolution();
+            FastForwardSearch ff = new FFIWPlanner(ssProblem);
+            Plan plan = ff.findNextSolution();
+
+
+            //HeuristicSearchPlanner hsp = new HeuristicSearchPlanner();
+            //HeuristicSearch hspSearch = hsp.makeSearch(ssProblem);
+            //var nextStates = hspSearch.GetNextStates();
+            //plan = hspSearch.findNextSolution();
+            ////HSPlanner hsp = new HSPlanner(ssProblem);
             //Plan plan = hsp.findNextSolution();
         }
 

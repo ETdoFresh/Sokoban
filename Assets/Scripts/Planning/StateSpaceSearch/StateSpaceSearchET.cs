@@ -7,6 +7,8 @@ namespace StateSpaceSearchProject
 {
     public abstract class StateSpaceSearchET : StateSpaceSearch
     {
+        public static bool ShutThisSuckaDown = false;
+
         protected StateSpaceNode _currentNode;
 
         public StateSpaceSearchET(StateSpaceProblem problem) : base (problem)

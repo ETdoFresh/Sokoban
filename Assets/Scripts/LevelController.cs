@@ -5,14 +5,14 @@ using System.IO;
 using Planning;
 using Planning.IO;
 using StateSpaceSearchProject;
-using HeuristicSearchPlanner;
 using Planning.Logic;
 using System.Collections.Generic;
 using UnityThread;
+using PlanGraphSGW;
 
 public class LevelController : MonoBehaviour
 {
-    static public int MAX_LEVEL = 4;
+    static public int MAX_LEVEL = 5;
     static public int CURRENT_LEVEL = 1;
     static public event Action OnMove = delegate { };
     static public TextAsset domain;
@@ -44,9 +44,10 @@ public class LevelController : MonoBehaviour
     private GameObject ghosts;
     private GameObject arrows;
     public PlanController planController;
-
-
-    public float blue = 0;
+    public GameObject planButton;
+    private GameObject plangraph;
+    internal int pgLevel;
+    internal float pgLevelTimer;
 
     enum Direction { UP, DOWN, LEFT, RIGHT }
 
@@ -168,6 +169,7 @@ public class LevelController : MonoBehaviour
         }
         CheckForCompleteNextState();
         CheckForCompleteSolution();
+        CheckForPlanGraph();
     }
 
     public void PauseGame()
@@ -182,6 +184,10 @@ public class LevelController : MonoBehaviour
     public void ResumeGame()
     {
         Cinematic.OnCinematicFinish -= ResumeGame;
+
+        if (!_isPause)
+            return;
+
         _isPause = false;
         InputController.OnUp += MoveUp;
         InputController.OnDown += MoveDown;
@@ -321,6 +327,9 @@ public class LevelController : MonoBehaviour
         if (planController._plannerFunction != "NextState")
             return;
 
+        if (planController.GetThread() == null)
+            return;
+
         if (_isPause) ResumeGame();
         CreateHelpers();
         foreach (KeyValuePair<StateSpaceNode, int> entry in planController.GetThread().GetResult())
@@ -370,15 +379,18 @@ public class LevelController : MonoBehaviour
         if (_isPause) ResumeGame();
         ShowPlanArrows(planController.GetThread().GetPlan());
         planController.DeleteThread();
-
     }
 
     private void ShowPlanArrows(Plan plan)
     {
-        DeleteHelpers();
-        CreateHelpers();
         transform.FindChild("Player").gameObject.SetActive(true);
         transform.FindChild("Moveable Boxes").gameObject.SetActive(true);
+
+        if (plan == null)
+            return;
+
+        DeleteHelpers();
+        CreateHelpers();
         foreach (Step step in plan)
         {
             GameObject arrow = Instantiate(ArrowPrefab);
@@ -406,6 +418,9 @@ public class LevelController : MonoBehaviour
         arrows = new GameObject();
         arrows.name = "Arrows";
         arrows.transform.SetParent(transform);
+        plangraph = new GameObject();
+        plangraph.name = "PlanGraph";
+        plangraph.transform.SetParent(transform);
     }
 
     public void DeleteHelpers()
@@ -415,6 +430,11 @@ public class LevelController : MonoBehaviour
 
         if (arrows != null)
             Destroy(arrows);
+
+        if (plangraph != null)
+            Destroy(plangraph);
+
+        ghosts = arrows = plangraph = null;
     }
 
     private List<Vector2> GetBoxPositions(StateSpaceNode node)
@@ -531,5 +551,80 @@ public class LevelController : MonoBehaviour
         Renderer renderer = boxGhost.transform.GetChild(0).GetComponent<Renderer>();
         renderer.material.color = new Color(0, 0, 1);
         return boxGhost;
+    }
+
+    private void CheckForPlanGraph()
+    {
+        if (planController._plannerFunction != "PlanGraph")
+            return;
+
+        if (planController.GetThread() == null)
+            return;
+
+        PlanGraph planGraph = planController.GetThread().GetPlanGraph();
+        if (planController.planMenuState == PlanController.PlanMenuState.Complete
+        || planController.planMenuState == PlanController.PlanMenuState.Wait)
+        {
+            if (pgLevelTimer > 0.5f) pgLevel++;
+            if (pgLevelTimer > 0.5f) pgLevelTimer = 0;
+            ShowPlanGraphStates(pgLevel, planGraph.literals);
+            pgLevelTimer += Time.deltaTime;
+
+            if (pgLevel >= planGraph.Size() - 1)
+            {
+                if (_isPause) ResumeGame();
+                planController.DeleteThread();
+            }
+        }
+    }
+
+    private void ShowPlanGraphStates(int level, LiteralNode[] literals)
+    {
+
+        DeleteHelpers();
+        CreateHelpers();
+
+        transform.FindChild("Player").gameObject.SetActive(true);
+        transform.FindChild("Moveable Boxes").gameObject.SetActive(true);
+        foreach (LiteralNode literalNode in literals)
+        {
+            if (literalNode.getLevel() < 0 || literalNode.getLevel() > level)
+                continue;
+
+            Literal literal = literalNode.literal;
+            if (literal is Predication)
+                if (((Predication)literal).predicate == "has_player")
+                    CreatePlayerGhost((Predication)literal).transform.SetParent(plangraph.transform);
+
+            if (literal is Predication)
+                if (((Predication)literal).predicate == "has_box")
+                    CreateBoxGhost((Predication)literal).transform.SetParent(plangraph.transform);
+        }
+
+        for (int i = 0; i < plangraph.transform.childCount; i++)
+        {
+            GameObject pg = plangraph.transform.GetChild(i).gameObject;
+            pg.transform.localScale = Vector3.one;
+            Renderer renderer = pg.transform.GetChild(0).GetComponent<Renderer>();
+            Color color = renderer.material.color;
+            if (pg.name.Contains("Player"))
+            {
+                Color otherColor = PlayerGhostPrefab.transform.GetChild(0).GetComponent<Renderer>().sharedMaterial.color;
+                color.r = otherColor.r;
+                color.g = otherColor.g;
+                color.b = otherColor.b;
+            }
+            else
+            {
+                Color otherColor = BoxGhostPrefab.transform.GetChild(0).GetComponent<Renderer>().sharedMaterial.color;
+                color.r = otherColor.r;
+                color.g = otherColor.g;
+                color.b = otherColor.b;
+            }
+            color.a *= 0.7f;
+            color.a = Mathf.Clamp01(color.a);
+
+            renderer.material.color = color;
+        }
     }
 }
