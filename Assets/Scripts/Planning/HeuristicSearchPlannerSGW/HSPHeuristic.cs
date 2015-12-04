@@ -47,7 +47,7 @@ namespace HeuristicSearchPlannerSGW
 
         protected abstract int cost(Expression expression);
 
-        public override double evaluate(State current)
+        public override int evaluate(State current)
         {
             costMap.Clear();
             foreach (Literal literal in literals)

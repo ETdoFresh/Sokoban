@@ -32,14 +32,14 @@ namespace Benchmark
 
             //FastForwardSearch ff = new FastForwardSearch(ssProblem);
             //Plan plan = ff.findNextSolution();
-            FastForwardSearch ff = new FFIWPlanner(ssProblem);
-            Plan plan = ff.findNextSolution();
+            //FastForwardSearch ff = new FFIWPlanner(ssProblem);
+            //Plan plan = ff.findNextSolution();
 
 
-            //HeuristicSearchPlanner hsp = new HeuristicSearchPlanner();
-            //HeuristicSearch hspSearch = hsp.makeSearch(ssProblem);
+            HeuristicSearchPlanner hsp = new HeuristicSearchPlanner();
+            HeuristicSearch hspSearch = hsp.makeSearch(ssProblem);
             //var nextStates = hspSearch.GetNextStates();
-            //plan = hspSearch.findNextSolution();
+            Plan plan = hspSearch.findNextSolution();
             ////HSPlanner hsp = new HSPlanner(ssProblem);
             //Plan plan = hsp.findNextSolution();
         }

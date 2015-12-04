@@ -16,7 +16,7 @@ namespace HeuristicSearchPlannerSGW
             this.problem = problem;
         }
 
-        public abstract double evaluate(State current);
+        public abstract int evaluate(State current);
     }
 
 }

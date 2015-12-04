@@ -13,7 +13,7 @@ using PlanGraphSGW;
 public class LevelController : MonoBehaviour
 {
     static public int MAX_LEVEL = 5;
-    static public int CURRENT_LEVEL = 1;
+    static public int CURRENT_LEVEL = 3;
     static public event Action OnMove = delegate { };
     static public TextAsset domain;
     static public int num_times_enables = 0;

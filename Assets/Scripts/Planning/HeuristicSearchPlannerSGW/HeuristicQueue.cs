@@ -28,8 +28,11 @@ namespace HeuristicSearchPlannerSGW
 
         public HeuristicNode push(StateSpaceNode node)
         {
-            HeuristicNode n = new HeuristicNode(node, heuristic.evaluate(node.state));
-            queue.Enqueue(n,Convert.ToInt32( n.heuristic));
+            int heuristicValue = heuristic.evaluate(node.state);
+            if (heuristicValue != HSPHeuristic.INFINITY)
+                heuristicValue += node.plan.Size();
+            HeuristicNode n = new HeuristicNode(node, heuristicValue);
+            queue.Enqueue(n, heuristicValue);
             return n;
         }
 

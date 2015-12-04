@@ -23,6 +23,6 @@ namespace Planning
          * @param object the partial solution
          * @return an estimate of remaining work
          */
-        double evaluate(E obj);
+        int evaluate(E obj);
     }
 }
